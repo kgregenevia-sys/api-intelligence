@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<!--NXBUILD:20260723-074828-->
+<!--NXBUILD:20260723-075348-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NEXION — Intelligence Terminal</title>
@@ -14,7 +14,7 @@
 <meta http-equiv="Expires" content="0">
 <script>
 /* NEXION auto-update: zawsze najswiezsza wersja bez czyszczenia cache */
-window.NX_BUILD="20260723-074828";
+window.NX_BUILD="20260723-075348";
 (function(){try{
   fetch(location.pathname.replace(/[?#].*$/,'')+'?_ck='+Date.now(),{cache:'no-store'})
    .then(function(r){return r.text();})
@@ -35,7 +35,7 @@ window.NX_BUILD="20260723-074828";
 --bg0:#04060c;--bg1:#070b14;--bg2:#0b1120;--panel:rgba(255,255,255,.035);--panel2:rgba(255,255,255,.05);
 --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);--glass:rgba(12,17,30,.72);
 --txt:#eef2fb;--mut:#93a1bd;--dim:#5f6c86;
---gold:#d9b45a;--gold2:#f4dd94;--blu:#5b8cff;--teal:#37d3c0;--pur:#a488f5;--grn:#3fce78;--amb:#e9b23f;--red:#f0655f;
+--gold:#d9b45a;--gold2:#f4dd94;--blu:#5b8cff;--teal:#37d3c0;--pur:#a488f5;--grn:#3fce78;--amb:#f97316;--red:#f0655f;
 --sh:0 18px 50px -12px rgba(0,0,0,.7);--shg:0 0 0 1px var(--line),0 12px 40px -14px rgba(0,0,0,.65);
 --rad:16px;--rad2:12px;--sb:248px;
 --ease:cubic-bezier(.4,0,.2,1);
@@ -507,7 +507,7 @@ body.reduce .nx-core .ring,body.reduce .nx-core .orb,body.reduce .nx-prog i{anim
 </style>
 </head>
 <body>
-<script>try{var _t=localStorage.getItem('nexion.theme');if(_t===null)_t='goldlight';if(_t){document.documentElement.setAttribute('data-theme',_t);if(_t==='arctic'||_t==='goldlight')document.documentElement.setAttribute('data-light','1');}}catch(e){}</script>
+<script>try{var _t=localStorage.getItem('nexion.theme');if(_t===null||_t==='goldlight'||_t==='gold')_t='arctic';if(_t){document.documentElement.setAttribute('data-theme',_t);if(_t==='arctic')document.documentElement.setAttribute('data-light','1');}}catch(e){}</script>
 <div id="aurora"></div><div id="nx-sweep"></div><div id="grain"></div>
 <div id="loader"><div class="nx-splash">
   <div class="nx-core">
@@ -581,7 +581,7 @@ function animateNum(node,to,suffix,dur){if(REDUCE()){node.textContent=(typeof to
 /* ============ CHART ENGINE (canvas, no deps) ============ */
 const _NXA=(getComputedStyle(document.documentElement).getPropertyValue('--acc')||'').trim()||"#5b8cff";
 const _NXA2=(getComputedStyle(document.documentElement).getPropertyValue('--acc2')||'').trim()||"#8fb0ff";
-const COLORS=[_NXA,_NXA2,"#37d3c0","#a488f5","#3fce78","#e9b23f","#f0655f","#6fb0ff","#f4dd94","#5ee0cf"];
+const COLORS=[_NXA,_NXA2,"#37d3c0","#a488f5","#3fce78","#6fb0ff","#f0655f","#8fb8ff","#5ee0cf","#a488f5"];
 class Chart{
  constructor(container,cfg){
   this.c=container;this.cfg=cfg;this.type=cfg.type;this.data=cfg.data;this.opt=cfg.options||{};
@@ -800,7 +800,7 @@ function buildOverviewCharts(cg){
  chartCard(cg,"c5","5 · Potencjał przychodu kontra trudność",{type:"scatter",options:{xLabel:"Trudność (10-integ)",yLabel:"Przychód"},data:{series:[{name:"API",color:"#37d3c0",points:API_DATA.map(a=>({x:10-a.integ,y:a.rev,label:a.n}))}]}});
  chartCard(cg,"c6","6 · Ryzyko kontra stabilność",{type:"scatter",options:{xLabel:"Stabilność",yLabel:"Ryzyko(1-3)"},data:{series:[
   {name:"niskie",color:"#3fce78",points:API_DATA.filter(a=>a.risk==="low").map(a=>({x:a.stab,y:1,label:a.n}))},
-  {name:"średnie",color:"#e9b23f",points:API_DATA.filter(a=>a.risk==="med").map(a=>({x:a.stab,y:2,label:a.n}))},
+  {name:"średnie",color:"#f97316",points:API_DATA.filter(a=>a.risk==="med").map(a=>({x:a.stab,y:2,label:a.n}))},
   {name:"wysokie",color:"#f0655f",points:API_DATA.filter(a=>a.risk==="high").map(a=>({x:a.stab,y:3,label:a.n}))}]}});
  const mrrCat=catAgg(g=>Math.round(g.reduce((s,a)=>s+a.rev,0)/100*299)).sort((a,b)=>b.value-a.value);
  chartCard(cg,"c9","9 · Potencjał MRR wg kategorii (zł, ESTYMACJA)",{type:"bar",options:{legend:false},data:{labels:mrrCat.map(x=>x.label),series:[{name:"MRR proxy",color:"#3fce78",values:mrrCat.map(x=>x.value)}]}});
@@ -1167,7 +1167,7 @@ const HERO={opp:0,canvas:null,ctx:null,raf:null};
 function applyAccent(name){APP.accent=name;document.body.setAttribute('data-accent',name);const st=getSettings();st.accent=name;saveSettings(st);
  const _cs=getComputedStyle(document.documentElement);const _a1=(_cs.getPropertyValue('--acc')||'').trim()||'#8ea2ff',_a2=(_cs.getPropertyValue('--acc2')||'').trim()||'#c7d2fe';
  const pal=[_a1,_a2];
- const base=[pal[0],pal[1],'#37d3c0','#a488f5','#3fce78','#e9b23f','#f0655f','#6fb0ff','#5ee0cf','#f4a259'];
+ const base=[pal[0],pal[1],'#37d3c0','#a488f5','#3fce78','#f97316','#f0655f','#6fb0ff','#5ee0cf','#f4a259'];
  COLORS.length=0;base.forEach(c=>COLORS.push(c));
  Object.values(CHARTS).forEach(ch=>{try{ch.animate()}catch(e){}});
  try{updateHero()}catch(e){}
@@ -1196,7 +1196,7 @@ Chart.prototype.drawBubble=function(ctx,k){ctx.clearRect(0,0,this.W,this.H);this
  ctx.fillStyle='#5f6c86';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText(this.opt.xLabel||'',pad.l+pw/2,H-6);ctx.save();ctx.translate(12,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText(this.opt.yLabel||'',0,0);ctx.restore();
  pts.forEach(p=>{const cx=pad.l+p.x/xmax*pw;const cy=pad.t+ph-p.y/ymax*ph;const rad=(3+(p.r||5)*0.9)*(.5+.5*k);const col=p.color||COLORS[0];
   ctx.beginPath();ctx.arc(cx,cy,rad,0,7);ctx.fillStyle=col+'99';ctx.fill();
-  const rc={low:'#3fce78',med:'#e9b23f',high:'#f0655f'}[p.risk]||col;ctx.lineWidth=p.risk==='high'?2.2:1.2;ctx.strokeStyle=rc;ctx.beginPath();ctx.arc(cx,cy,rad+2.5,0,7);ctx.stroke();
+  const rc={low:'#3fce78',med:'#f97316',high:'#f0655f'}[p.risk]||col;ctx.lineWidth=p.risk==='high'?2.2:1.2;ctx.strokeStyle=rc;ctx.beginPath();ctx.arc(cx,cy,rad+2.5,0,7);ctx.stroke();
   if(this.selKey===p.key){ctx.shadowColor=col;ctx.shadowBlur=18;ctx.beginPath();ctx.arc(cx,cy,rad,0,7);ctx.fillStyle=col;ctx.fill();ctx.shadowBlur=0;}
   this.hot.push({x:cx,y:cy,key:p.key,tip:'<b>'+p.label+'</b><br>'+(this.opt.xLabel)+': '+p.x+' · '+(this.opt.yLabel)+': '+p.y+'<br>ryzyko: '+p.risk});});};
 Chart.prototype.drawWaterfall=function(ctx,k){ctx.clearRect(0,0,this.W,this.H);this.hot=[];const items=this.data.items;const pad={l:56,r:14,t:14,b:34};let cum=0;const vals=[];items.forEach(it=>{if(it.type==='total'){vals.push([0,it.value]);}else{vals.push([cum,cum+it.value]);cum+=it.value;}});const flat=vals.flat();const max=Math.max(...flat,0)*1.1||1,min=Math.min(...flat,0)*1.1;this.axis(ctx,pad,max,min);const W=this.W,H=this.H,pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;const bw=Math.min(pw/items.length*.62,60);const y0=v=>pad.t+ph-(v-min)/(max-min)*ph;
@@ -1281,7 +1281,7 @@ function renderOverview(sec){
  renderOppMap(sec);
 }
 function buildKpis(strip){const total=API_DATA.length,avg=Math.round(API_DATA.reduce((s,a)=>s+a.sc,0)/total),free=API_DATA.filter(a=>a.free).length,hi=API_DATA.filter(a=>a.risk==='high').length,n8=API_DATA.filter(a=>a.n8n>=7).length;const base=funnelCompute({traffic:8000,price:349,convs:[.55,.4,.6,.7,.95,.9],cac:180,churn:.06,margin:.8});
- [['Wszystkie API',total,'#5b8cff'],['Średnia ocena',avg,'#d9b45a'],['Z darmowym planem',free,'#3fce78'],['Wysokie ryzyko',hi,'#f0655f'],['Rekom. do n8n',n8,'#a488f5'],['Możliwy MRR · ESTYMACJA',Math.round(base.mrr),'#37d3c0']].forEach((k,i)=>{const c=el('div','kpi surface-2');c.innerHTML='<div class="kl">'+k[0]+'</div><div class="kn">0</div><canvas class="spark"></canvas>';strip.appendChild(c);animateNum(c.querySelector('.kn'),k[1],'',900);const sp=c.querySelector('.spark');requestAnimationFrame(()=>drawSpark(sp,Array.from({length:12},(_,j)=>40+Math.sin(i+j/2)*18+j*3),k[2]));});}
+ [['Wszystkie API',total,'#5b8cff'],['Średnia ocena',avg,'#5b8cff'],['Z darmowym planem',free,'#3fce78'],['Wysokie ryzyko',hi,'#f0655f'],['Rekom. do n8n',n8,'#a488f5'],['Możliwy MRR · ESTYMACJA',Math.round(base.mrr),'#37d3c0']].forEach((k,i)=>{const c=el('div','kpi surface-2');c.innerHTML='<div class="kl">'+k[0]+'</div><div class="kn">0</div><canvas class="spark"></canvas>';strip.appendChild(c);animateNum(c.querySelector('.kn'),k[1],'',900);const sp=c.querySelector('.spark');requestAnimationFrame(()=>drawSpark(sp,Array.from({length:12},(_,j)=>40+Math.sin(i+j/2)*18+j*3),k[2]));});}
 function buildOverviewTabs(host){
  const cats=CATS.filter(c=>API_DATA.some(a=>a.c===c[0]));
  const catCounts=cats.map((c,i)=>({label:c[1],value:API_DATA.filter(a=>a.c===c[0]).length,color:COLORS[i%COLORS.length]})).sort((a,b)=>b.value-a.value);
@@ -1641,6 +1641,7 @@ window.__COMBOS__ = [
 <style>
 @media(max-width:900px){#cpBtn{bottom:calc(78px + env(safe-area-inset-bottom))!important}}
 .nx-palette svg{width:16px;height:16px}
+#accentDots{display:none!important}
 /* Arctic (light) — popraw twardo-ciemne powierzchnie */
 html[data-light] #modalbg{background:rgba(18,28,55,.34)}
 html[data-light] code{background:#eef2f8;color:#334; border-color:var(--line)}
@@ -1658,13 +1659,11 @@ html[data-light] .navbtn{color:var(--mut)}
 /* ===== NEXION experience layer: motywy, parallax, liczniki, mobile tabs ===== */
 (function(){
   var THEMES=[
-    {v:"goldlight",n:"Gold Light",c:"#d9b45a",bg:"#f5f2ea"},
+    {v:"arctic",n:"Arctic (jasny)",c:"#2563eb",bg:"#e9edf4"},
     {v:"",n:"Midnight",c:"#8ea2ff",bg:"#05070e"},
     {v:"graphite",n:"Graphite",c:"#c3cbd8",bg:"#0d0e11"},
-    {v:"arctic",n:"Arctic",c:"#2563eb",bg:"#e9edf4"},
     {v:"ocean",n:"Ocean",c:"#2fc6e6",bg:"#04111d"},
-    {v:"emerald",n:"Emerald",c:"#34d399",bg:"#05130d"},
-    {v:"gold",n:"Gold Exec",c:"#d9b45a",bg:"#0a0906"}
+    {v:"emerald",n:"Emerald",c:"#34d399",bg:"#05130d"}
   ];
   function metaColor(v){var t=THEMES.filter(function(x){return x.v===v;})[0];return t?t.bg:"#05070e";}
   function applyTheme(v){
@@ -1692,7 +1691,7 @@ html[data-light] .navbtn{color:var(--mut)}
     document.addEventListener("click",function(){menu.classList.remove("on");});
     wrap.appendChild(btn);wrap.appendChild(menu);host.insertBefore(wrap,host.firstChild);
     document.addEventListener("keydown",function(e){if(e.key==="t"&&!/input|textarea/i.test((e.target.tagName||""))){applyTheme(nextTheme());}});
-    var saved="goldlight";try{var _s=localStorage.getItem("nexion.theme");saved=(_s===null?"goldlight":_s);}catch(e){}
+    var saved="arctic";try{var _s=localStorage.getItem("nexion.theme");saved=(_s===null||_s==="goldlight"||_s==="gold"?"arctic":_s);}catch(e){}
     applyTheme(saved);
   }
   function nextTheme(){var cur=document.documentElement.getAttribute("data-theme")||"";var i=THEMES.map(function(t){return t.v;}).indexOf(cur);return THEMES[(i+1)%THEMES.length].v;}
