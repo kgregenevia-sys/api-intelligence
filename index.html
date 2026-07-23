@@ -725,7 +725,7 @@ const IC={
  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L16.5 3h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5c.1-.3.1-.7.1-1z"/></svg>'
 };
 const MODULES=[
- {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},
+ {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},{id:"aiarch",label:"AI Architekt",render:renderAIArch},{id:"roi",label:"ROI Analyzer",render:renderROI},
  {id:"rank",label:"Ranking API",render:renderRanking,num:()=>API_DATA.length},
  {id:"deep",label:"TOP 30",render:renderDeep,num:()=>Object.keys(DEEP).length},
  {id:"combos",label:"Kombinacje API",render:renderCombos,num:()=>COMBOS.length},
@@ -1255,6 +1255,64 @@ function renderCopilot(sec){
  box.querySelector("#nxGoal").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
 }
 /* ===================== /MODUŁ 1 ===================== */
+
+/* ===================== NEXION 2.0 · MODUŁ 7: AI ARCHITEKT (diagram SVG + eksport PNG/PDF) ===================== */
+function nxDlBlob(name,blob){var u=URL.createObjectURL(blob);var a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(u);},150);}
+function nxDiagram(apis,goal){
+ var apiLabel=apis.slice(0,3).map(function(a){return a.n.split(" ")[0];}).join(" · ")||"API";
+ var layers=["Źródła danych",apiLabel+" (API)","n8n · orkiestracja","Supabase · baza + RLS","Edge Functions","AI · analiza / generacja","Dashboard","CRM","Alerty","Klient"];
+ var W=600,bh=44,gap=30,pad=40,bw=380,bx=(W-bw)/2;
+ var H=pad*2+layers.length*bh+(layers.length-1)*gap;
+ var s='<svg id="nxDg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:520px;display:block;margin:0 auto;font-family:system-ui,sans-serif">';
+ s+='<defs><linearGradient id="nxbx" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12203c"/><stop offset="1" stop-color="#0a1120"/></linearGradient><marker id="nxar" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#E8B04B"/></marker></defs>';
+ s+='<rect width="'+W+'" height="'+H+'" fill="#05070e"/>';
+ var y=pad;
+ for(var i=0;i<layers.length;i++){
+  var hi=(i===1);
+  s+='<rect x="'+bx+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="12" fill="url(#nxbx)" stroke="'+(hi?"#E8B04B":"rgba(232,176,75,.4)")+'" stroke-width="'+(hi?2:1)+'"/>';
+  s+='<text x="'+W/2+'" y="'+(y+bh/2+5)+'" text-anchor="middle" font-size="15" font-weight="'+(hi?"800":"600")+'" fill="'+(hi?"#F6D488":"#eaf0fb")+'">'+layers[i].replace(/&/g,"&amp;")+'</text>';
+  if(i<layers.length-1){var ay=y+bh,by=y+bh+gap;s+='<line x1="'+W/2+'" y1="'+ay+'" x2="'+W/2+'" y2="'+(by-8)+'" stroke="#E8B04B" stroke-width="2" marker-end="url(#nxar)"/>';}
+  y+=bh+gap;
+ }
+ s+='<text x="'+W/2+'" y="'+(H-14)+'" text-anchor="middle" font-size="11" fill="#8a97b1">NEXION · '+goal.name.replace(/&/g,"&amp;")+'</text>';
+ s+='</svg>';return s;
+}
+function nxSvgToPng(svgStr,name){
+ var blob=new Blob([svgStr],{type:"image/svg+xml;charset=utf-8"});var url=URL.createObjectURL(blob);var img=new Image();
+ img.onload=function(){var sc=2;var vb=svgStr.match(/viewBox="0 0 (\d+) (\d+)"/);var w=vb?+vb[1]:600,h=vb?+vb[2]:780;var c=document.createElement("canvas");c.width=w*sc;c.height=h*sc;var ctx=c.getContext("2d");ctx.fillStyle="#05070e";ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);c.toBlob(function(b){nxDlBlob(name,b);},"image/png");};
+ img.onerror=function(){if(typeof toast==="function")toast("Nie udało się wygenerować PNG.","Eksport","warn");};
+ img.src=url;
+}
+function nxPrintPdf(svgStr,title){var w=window.open("","_blank");if(!w){if(typeof toast==="function")toast("Zezwól na wyskakujące okna, aby zapisać PDF.","PDF","warn");return;}w.document.write('<!DOCTYPE html><html><head><title>'+title+'</title><style>@page{margin:16mm}body{margin:0;background:#fff;display:flex;justify-content:center}</style></head><body>'+svgStr+'<scr'+'ipt>setTimeout(function(){window.print();},350);</scr'+'ipt></body></html>');w.document.close();}
+function renderAIArch(sec){
+ mhead(sec,"AI Architekt","Diagram architektury Twojego projektu — eksport PNG i PDF","SVG · offline");
+ var box=el("div","panel edge");box.style.marginBottom="14px";
+ box.innerHTML='<label class="em" style="font-weight:700;display:block;margin-bottom:6px">Dla jakiego projektu?</label><input id="nxAaGoal" placeholder="np. Marketplace, CRM, Monitoring cen" style="width:100%;background:var(--bg2,#0b2b28);border:1px solid var(--line,#1b4b46);color:var(--txt,#fff);border-radius:10px;padding:12px 14px;font-size:15px;outline:none"><button class="btn gold" id="nxAaGen" style="margin-top:10px;font-weight:800">🗺️ GENERUJ DIAGRAM</button>';
+ sec.appendChild(box);var out=el("div");out.id="nxAaOut";sec.appendChild(out);
+ var run=function(){var q=(box.querySelector("#nxAaGoal").value||"").trim();var goal=nxGoal(q);var apis=nxPick(goal.cats,5);var svg=nxDiagram(apis,goal);
+  out.innerHTML="";var p=el("div","panel edge");p.innerHTML='<h3 style="margin:0 0 10px">Architektura: '+goal.name+'</h3>'+svg+'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn gold" id="nxAaPng">Eksport PNG</button><button class="btn" id="nxAaPdf">Eksport PDF</button></div>';out.appendChild(p);
+  var sl=nxSlug(goal.name);
+  p.querySelector("#nxAaPng").onclick=function(){nxSvgToPng(svg,"nexion_"+sl+"_architektura.png");};
+  p.querySelector("#nxAaPdf").onclick=function(){nxPrintPdf(svg,"NEXION – "+goal.name);};
+  if(typeof toast==="function")toast("Diagram gotowy.","AI Architekt","ok");};
+ box.querySelector("#nxAaGen").onclick=run;box.querySelector("#nxAaGoal").addEventListener("keydown",function(e){if(e.key==="Enter")run();});
+}
+/* ===================== MODUŁ 6: AI ROI ANALYZER ===================== */
+function nxRoiCalc(v){var conv=v.conv/100,churn=Math.max(v.churn/100,0.001);var payingPerM=v.newLeads*conv;var active=payingPerM/churn;var mrr=active*v.price;var arr=mrr*12;var ltv=v.price*(1/churn);var cac=v.cac;var payback=cac>0?cac/Math.max(v.price,1):0;var grossM=mrr-v.mcost;var acq=payingPerM*cac;var cash=grossM-acq;var be=cash>0?(v.budget)/cash:Infinity;return{payingPerM:payingPerM,active:active,mrr:mrr,arr:arr,ltv:ltv,cac:cac,payback:payback,cash:cash,be:be};}
+function renderROI(sec){
+ mhead(sec,"ROI Analyzer","Policz opłacalność: MRR, ARR, CAC, LTV, Break-Even, Payback + 3 scenariusze","kalkulator · ESTYMACJA");
+ var s=el("div","panel edge");
+ var flds=[["budget","Budżet startowy (zł)",20000],["mcost","Koszt miesięczny (zł)",2000],["price","Cena / klient / mc (zł)",149],["newLeads","Nowi leady / mc",200],["conv","Konwersja (%)",10],["churn","Churn (%/mc)",5],["cac","CAC — koszt pozyskania (zł)",120]];
+ s.innerHTML='<h3 style="margin:0 0 8px">Dane wejściowe</h3><div class="grid g2">'+flds.map(function(f){return '<div class="fld-in"><label>'+f[1]+'</label><input type="number" data-r="'+f[0]+'" value="'+f[2]+'" style="width:100%;background:var(--bg2,#0b2b28);border:1px solid var(--line,#1b4b46);color:var(--txt,#fff);border-radius:8px;padding:8px 10px"></div>';}).join("")+'</div>';
+ sec.appendChild(s);var out=el("div");out.id="nxRoiOut";out.style.marginTop="12px";sec.appendChild(out);
+ var calc=function(){var v={};s.querySelectorAll("[data-r]").forEach(function(i){v[i.dataset.r]=parseFloat(i.value)||0;});
+  var scen=[["Pesymistyczny",0.6],["Realny",1],["Optymistyczny",1.4]];
+  var base=nxRoiCalc(v);
+  out.innerHTML='<div class="panel edge"><h3 style="margin:0 0 8px">Wynik (scenariusz realny)</h3><div class="statline"><div class="s"><div class="n">'+pln(base.mrr)+'</div><div class="l">MRR</div></div><div class="s"><div class="n">'+pln(base.arr)+'</div><div class="l">ARR</div></div><div class="s"><div class="n">'+pln(base.ltv)+'</div><div class="l">LTV</div></div><div class="s"><div class="n">'+pln(base.cac)+'</div><div class="l">CAC</div></div><div class="s"><div class="n">'+(base.payback?base.payback.toFixed(1):"—")+' mc</div><div class="l">Payback</div></div><div class="s"><div class="n" style="color:'+(base.cash>=0?"var(--grn,#3fce78)":"var(--red,#ff6b6b)")+'">'+pln(base.cash)+'</div><div class="l">Cash flow/mc</div></div><div class="s"><div class="n">'+(isFinite(base.be)?base.be.toFixed(1)+" mc":"—")+'</div><div class="l">Break-even</div></div><div class="s"><div class="n">'+Math.round(base.active)+'</div><div class="l">Klienci aktywni</div></div></div></div>'+
+   '<div class="panel edge" style="margin-top:12px"><h3 style="margin:0 0 8px">3 scenariusze</h3><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="color:var(--mut,#8a97b1);text-align:left"><th style="padding:6px">Scenariusz</th><th>MRR</th><th>ARR</th><th>Cash flow/mc</th><th>Break-even</th></tr>'+scen.map(function(sc){var vv=Object.assign({},v);vv.conv=v.conv*sc[1];vv.newLeads=v.newLeads*sc[1];var r=nxRoiCalc(vv);return '<tr style="border-top:1px solid var(--line,#1b4b46)"><td style="padding:6px"><b>'+sc[0]+'</b></td><td>'+pln(r.mrr)+'</td><td>'+pln(r.arr)+'</td><td style="color:'+(r.cash>=0?"var(--grn,#3fce78)":"var(--red,#ff6b6b)")+'">'+pln(r.cash)+'</td><td>'+(isFinite(r.be)?r.be.toFixed(1)+" mc":"—")+'</td></tr>';}).join("")+'</table><div class="small mut" style="margin-top:8px">Wartości to ESTYMACJA. Model: klienci aktywni ≈ (leady×konwersja)/churn; LTV = cena/churn; break-even = budżet/cash flow.</div></div>';};
+ s.querySelectorAll("[data-r]").forEach(function(i){i.addEventListener("input",calc);});calc();
+}
+/* ===================== /MODUŁY 6+7 ===================== */
 
 function renderSettings(sec){
  mhead(sec,"Ustawienia","Integracje, wygląd i dane","lokalnie");
