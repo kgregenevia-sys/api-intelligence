@@ -1,0 +1,14 @@
+{
+  "name": "NEXION — AI Business Intelligence",
+  "short_name": "NEXION",
+  "description": "AI business intelligence command center — discover APIs, forecast revenue, automate workflows.",
+  "start_url": "/api-intelligence/",
+  "scope": "/api-intelligence/",
+  "display": "standalone",
+  "background_color": "#05070e",
+  "theme_color": "#05070e",
+  "icons": [
+    { "src": "https://kgregenevia-sys.github.io/api-intelligence/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "https://kgregenevia-sys.github.io/api-intelligence/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
