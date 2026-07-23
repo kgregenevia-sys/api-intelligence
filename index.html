@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<!--NXBUILD:20260723-080249-->
+<!--NXBUILD:20260723-080649-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NEXION — Intelligence Terminal</title>
@@ -14,7 +14,7 @@
 <meta http-equiv="Expires" content="0">
 <script>
 /* NEXION auto-update: zawsze najswiezsza wersja bez czyszczenia cache */
-window.NX_BUILD="20260723-080249";
+window.NX_BUILD="20260723-080649";
 (function(){try{
   fetch(location.pathname.replace(/[?#].*$/,'')+'?_ck='+Date.now(),{cache:'no-store'})
    .then(function(r){return r.text();})
@@ -1871,7 +1871,22 @@ html[data-light] .navbtn{color:var(--mut)}
     var c=document.createElement("div");c.id="nxc-cta";c.innerHTML='<b>✦ Odblokuj pełny NEXION</b><span>Uzupełnij profil — dopasujemy analizy i okazje.</span>';
     c.onclick=window.nxProfile;var foot=side.querySelector(".side-foot");if(foot)side.insertBefore(c,foot);else side.appendChild(c);}
 
-  function start(){buildBanner();addCta();
+  var EXPORT_EP="https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/apiintel-export";
+  function injectExport(){
+    var sec=document.querySelector(".mod.on");if(!sec||sec.querySelector("#nxExpCard"))return;
+    var card=document.createElement("div");card.className="panel edge";card.id="nxExpCard";card.style.marginTop="14px";
+    card.innerHTML='<h3>Eksport danych (biuro)</h3>'
+     +'<div class="small mut" style="margin:6px 0 8px">Tylko dla właściciela — podaj klucz biura. Pobiera CSV (BOM, polskie znaki w Excelu).</div>'
+     +'<div class="fld-in"><label>Klucz biura</label><input id="nxExpKey" type="password" placeholder="AUREU-BIURO-…"></div>'
+     +'<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" id="nxExpL">Eksport leadów CSV</button><button class="btn" id="nxExpC">Eksport zgód CSV</button></div>';
+    sec.appendChild(card);
+    try{var kv=sessionStorage.getItem("nx.ok");if(kv)card.querySelector("#nxExpKey").value=kv;}catch(e){}
+    function dl(type){var k=(card.querySelector("#nxExpKey").value||"").trim();if(!k){if(typeof toast==="function")toast("Podaj klucz biura.","Eksport","warn");return;}try{sessionStorage.setItem("nx.ok",k);}catch(e){}window.open(EXPORT_EP+"?k="+encodeURIComponent(k)+"&type="+type,"_blank");}
+    card.querySelector("#nxExpL").onclick=function(){dl("leads");};
+    card.querySelector("#nxExpC").onclick=function(){dl("consents");};
+  }
+  function wrapGoExport(){ if(typeof window.go!=="function"||window.go.__nxexp)return; var _g=window.go; window.go=function(id){var r=_g.apply(this,arguments); if(id==="set")setTimeout(injectExport,90); return r;}; window.go.__nxexp=1; }
+  function start(){buildBanner();addCta();wrapGoExport();
     try{var cs=new URLSearchParams(location.search).get("consent");
       if(cs){ setTimeout(function(){ if(typeof toast==="function"){ if(cs==="confirmed")toast("Zgoda potwierdzona — dziękujemy!","RODO","ok"); else if(cs==="already")toast("Ta zgoda była już potwierdzona.","RODO"); else if(cs==="error")toast("Link potwierdzający jest nieprawidłowy lub wygasł.","RODO","err"); } },400);
         if(history.replaceState)history.replaceState({},"",location.pathname); }
