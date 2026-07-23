@@ -1023,7 +1023,7 @@ function renderStripe(sec){
  const q=new URLSearchParams(location.search).get("checkout");
  if(q==="success"){mhead(sec,"Płatność zakończona","","");sec.appendChild(el("div","panel hl edge",`<h2 style="color:var(--grn)">✓ Sukces</h2><p class="mut" style="margin:8px 0">Dostęp zostanie aktywowany po potwierdzeniu przez Stripe (webhook). To ekran sukcesu uruchamiany parametrem <code>?checkout=success</code>.</p><button class="btn gold" onclick="go('over')">Przejdź do panelu</button>`));return;}
  if(q==="cancel"){mhead(sec,"Płatność anulowana","","");sec.appendChild(el("div","panel edge",`<h2 style="color:var(--amb)">Anulowano</h2><p class="mut" style="margin:8px 0">Płatność nie została dokończona. Ekran uruchamiany parametrem <code>?checkout=cancel</code>.</p><button class="btn" onclick="go('stripe')">Wróć do planów</button>`));return;}
- mhead(sec,"Plans & Checkout","Wybierz plan — płatność przez Stripe Payment Links","bez backendu");
+ mhead(sec,"Cennik NEXION","Wybierz plan i odblokuj pełną moc analiz","");
  const cfg=getStripe();const anyCfg=Object.values(cfg).some(v=>v);
  if(!anyCfg)sec.appendChild(el("div","panel edge",`<b style="color:var(--amb)">⚠ WYMAGA KONFIGURACJI</b><div class="small mut" style="margin-top:4px">Linki Stripe nie zostały podane. Uzupełnij je w <a href="#" onclick="go('set');return false">Ustawieniach</a> lub w obiekcie <code>STRIPE_CONFIG</code>. Przyciski płatności są aktywne, ale nie przekierują bez linku — nigdy nie udajemy udanej płatności.</div>`));
  const tog=el("div");tog.style.margin="6px 0 16px";tog.innerHTML=`<span class="mut small" style="margin-right:10px">Rozliczenie:</span><div class="toggle" id="billTog"><button data-b="monthly" class="${BILLING==='monthly'?'on':''}">Miesięcznie</button><button data-b="yearly" class="${BILLING==='yearly'?'on':''}">Rocznie <span style="color:var(--grn)">−17%</span></button></div>`;
@@ -1035,7 +1035,7 @@ function renderStripe(sec){
  const extra=el("div","grid g2");extra.style.marginTop="16px";sec.appendChild(extra);
  const proSave=PLANS[1].m*12-PLANS[1].y;
  extra.innerHTML=`<div class="panel edge"><h3>Kalkulator oszczędności</h3><p class="mut small" style="margin:6px 0">Plan Professional rocznie zamiast miesięcznie:</p><div class="statline"><div class="s"><div class="n">${pln(proSave)}</div><div class="l">oszczędność / rok</div></div><div class="s"><div class="n">17%</div><div class="l">rabat roczny</div></div></div><button class="btn" onclick="openForm('consult')">Umów konsultację Enterprise</button></div>
- <div class="panel edge"><h3>Faktury i historia płatności</h3><div id="invoices" class="small mut" style="margin-top:8px">Brak płatności. Historia pojawi się po pierwszej transakcji Stripe (webhook → Supabase). To lokalny widok bez backendu.</div></div>`;
+ <div class="panel edge"><h3>Faktury i historia płatności</h3><div id="invoices" class="small mut" style="margin-top:8px">Brak płatności. Historia pojawi się po pierwszej płatności.</div></div>`;
 }
 function renderPlans(host,cfg){
  host.innerHTML="";
@@ -1048,7 +1048,7 @@ function renderPlans(host,cfg){
 function checkout(planId,link){
  if(!link){toast("Uzupełnij link w Ustawieniach lub STRIPE_CONFIG. Płatność nie zostanie udana bez konfiguracji.","Stripe nie został jeszcze skonfigurowany","warn");return;}
  if(!/^https:\/\/(buy\.stripe\.com|checkout\.stripe\.com)\//.test(link)){toast("Link nie wygląda na prawidłowy Stripe Payment Link (https://buy.stripe.com/...).","Nieprawidłowy link Stripe","err");return;}
- toast("Przekierowanie do bezpiecznego checkoutu Stripe…","Stripe","ok");setTimeout(()=>{location.href=link;},600);
+ toast("Przekierowanie do bezpiecznej płatności…","Płatność","ok");setTimeout(()=>{location.href=link;},600);
 }
 
 /* ============ ROADMAPA ============ */
