@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<!--NXBUILD:20260723-072231-->
+<!--NXBUILD:20260723-073939-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NEXION — Intelligence Terminal</title>
@@ -14,7 +14,7 @@
 <meta http-equiv="Expires" content="0">
 <script>
 /* NEXION auto-update: zawsze najswiezsza wersja bez czyszczenia cache */
-window.NX_BUILD="20260723-072231";
+window.NX_BUILD="20260723-073939";
 (function(){try{
   fetch(location.pathname.replace(/[?#].*$/,'')+'?_ck='+Date.now(),{cache:'no-store'})
    .then(function(r){return r.text();})
@@ -383,6 +383,7 @@ body.present .section-h,body.present .oppmap-side{display:none}
 }
 html[data-theme=graphite]{--acc:#c3cbd8;--acc2:#eef2f8;--on-acc:#14161b;--bg0:#0d0e11;--bg1:#121317;--bg2:#181a1f;--panel:rgba(255,255,255,.05);--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);--glass:rgba(20,22,26,.7);--txt:#eef1f6;--mut:#a2abba;--dim:#6a7182;--au1:rgba(180,190,205,.14);--au2:rgba(150,160,175,.10);--au3:rgba(120,130,145,.08);--au4:rgba(200,205,215,.08);}
 html[data-theme=arctic]{--acc:#2563eb;--acc2:#3b82f6;--on-acc:#ffffff;--bg0:#e9edf4;--bg1:#f2f5fa;--bg2:#ffffff;--panel:rgba(255,255,255,.72);--panel2:rgba(255,255,255,.9);--line:rgba(12,22,45,.10);--line2:rgba(12,22,45,.18);--glass:rgba(255,255,255,.78);--txt:#0c1428;--mut:#4d5871;--dim:#8590a8;--au1:rgba(59,130,246,.14);--au2:rgba(120,90,240,.10);--au3:rgba(40,190,210,.10);--au4:rgba(90,140,255,.10);}
+html[data-theme=goldlight]{--acc:#a87d1e;--acc2:#d9b45a;--on-acc:#2a2205;--bg0:#ece9df;--bg1:#f5f2ea;--bg2:#ffffff;--panel:rgba(255,255,255,.72);--panel2:rgba(255,255,255,.92);--line:rgba(70,52,12,.12);--line2:rgba(70,52,12,.2);--glass:rgba(255,255,255,.8);--txt:#241d0c;--mut:#6a5f42;--dim:#9a8f70;--au1:rgba(217,180,90,.20);--au2:rgba(230,190,110,.14);--au3:rgba(200,160,70,.12);--au4:rgba(235,205,130,.12);}
 html[data-theme=ocean]{--acc:#2fc6e6;--acc2:#8fe6f7;--on-acc:#031522;--bg0:#04111d;--bg1:#061a2b;--bg2:#0a2138;--panel:rgba(255,255,255,.05);--line:rgba(140,210,240,.12);--line2:rgba(140,210,240,.22);--glass:rgba(6,22,38,.7);--txt:#e7f4fb;--mut:#8fb0c8;--dim:#5a7a92;--au1:rgba(45,200,230,.20);--au2:rgba(60,120,230,.16);--au3:rgba(40,220,200,.12);--au4:rgba(70,150,255,.12);}
 html[data-theme=emerald]{--acc:#34d399;--acc2:#8ff0c4;--on-acc:#04180f;--bg0:#05130d;--bg1:#071b13;--bg2:#0a2418;--panel:rgba(255,255,255,.05);--line:rgba(120,235,190,.12);--line2:rgba(120,235,190,.22);--glass:rgba(7,26,18,.7);--txt:#e7fbf1;--mut:#8fc8ac;--dim:#5a8a72;--au1:rgba(52,211,153,.20);--au2:rgba(40,190,140,.14);--au3:rgba(90,230,180,.12);--au4:rgba(60,200,160,.12);}
 html[data-theme=gold]{--acc:#d9b45a;--acc2:#f4dd94;--on-acc:#20180a;--bg0:#0a0906;--bg1:#12100a;--bg2:#18140d;--panel:rgba(255,255,255,.045);--line:rgba(233,200,120,.12);--line2:rgba(233,200,120,.22);--glass:rgba(18,15,10,.72);--txt:#f6efe2;--mut:#bcae94;--dim:#7d745f;--au1:rgba(217,180,90,.20);--au2:rgba(240,190,110,.14);--au3:rgba(200,160,80,.12);--au4:rgba(230,200,130,.12);}
@@ -401,13 +402,13 @@ h1,h2,h3,h4,.mhead h1,.plan .price,.kpi .kn,.statline .s .n,.dcard .dsc,.brand{f
  radial-gradient(42% 42% at 8% 92%,var(--au4),transparent 60%);
  transition:background .6s var(--ease)}
 #grain{opacity:.35}
-html[data-theme=arctic] #grain{opacity:.5;mix-blend-mode:multiply}
+html[data-light] #grain{opacity:.5;mix-blend-mode:multiply}
 #nx-sweep{position:fixed;inset:0;z-index:-1;pointer-events:none;background:
  radial-gradient(120% 60% at 50% -10%,color-mix(in srgb,var(--acc) 12%,transparent),transparent 60%);
  opacity:.7}
 body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
  background:radial-gradient(130% 100% at 50% 0%,transparent 55%,rgba(0,0,0,.45) 100%)}
-html[data-theme=arctic] body::after{background:radial-gradient(130% 100% at 50% 0%,transparent 60%,rgba(20,30,60,.10) 100%)}
+html[data-light] body::after{background:radial-gradient(130% 100% at 50% 0%,transparent 60%,rgba(20,30,60,.10) 100%)}
 
 /* ---- top bar / brand ---- */
 #top{height:58px;background:var(--glass);backdrop-filter:blur(22px) saturate(1.2)}
@@ -423,7 +424,7 @@ html[data-theme=arctic] body::after{background:radial-gradient(130% 100% at 50% 
 .navbtn{border-radius:12px;font-weight:550;transition:.18s var(--ease)}
 .navbtn:hover{transform:translateX(2px)}
 .navbtn.on{background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 16%,transparent),transparent);border-color:color-mix(in srgb,var(--acc) 30%,transparent);color:#fff}
-html[data-theme=arctic] .navbtn.on{color:var(--txt)}
+html[data-light] .navbtn.on{color:var(--txt)}
 .navbtn.on::before{background:linear-gradient(180deg,var(--acc2),var(--acc));box-shadow:0 0 12px color-mix(in srgb,var(--acc) 60%,transparent)}
 #side{background:linear-gradient(180deg,color-mix(in srgb,var(--bg1) 70%,transparent),color-mix(in srgb,var(--bg0) 70%,transparent))}
 
@@ -506,7 +507,7 @@ body.reduce .nx-core .ring,body.reduce .nx-core .orb,body.reduce .nx-prog i{anim
 </style>
 </head>
 <body>
-<script>try{var _t=localStorage.getItem('nexion.theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<script>try{var _t=localStorage.getItem('nexion.theme');if(_t===null)_t='goldlight';if(_t){document.documentElement.setAttribute('data-theme',_t);if(_t==='arctic'||_t==='goldlight')document.documentElement.setAttribute('data-light','1');}}catch(e){}</script>
 <div id="aurora"></div><div id="nx-sweep"></div><div id="grain"></div>
 <div id="loader"><div class="nx-splash">
   <div class="nx-core">
@@ -1641,22 +1642,23 @@ window.__COMBOS__ = [
 @media(max-width:900px){#cpBtn{bottom:calc(78px + env(safe-area-inset-bottom))!important}}
 .nx-palette svg{width:16px;height:16px}
 /* Arctic (light) — popraw twardo-ciemne powierzchnie */
-html[data-theme=arctic] #modalbg{background:rgba(18,28,55,.34)}
-html[data-theme=arctic] code{background:#eef2f8;color:#334; border-color:var(--line)}
-html[data-theme=arctic] th{background:rgba(255,255,255,.85);color:var(--mut)}
-html[data-theme=arctic] tr.detail td{background:#f3f6fb}
-html[data-theme=arctic] .dfield pre{background:#f4f7fc;color:#243;border-color:var(--line2)}
-html[data-theme=arctic] .kbd{background:#eef2f8;color:#55607a}
-html[data-theme=arctic] tbody tr.row:hover{background:rgba(20,40,90,.05)}
-html[data-theme=arctic] ::-webkit-scrollbar-thumb{background:#c3ccda}
-html[data-theme=arctic] .toast,html[data-theme=arctic] .modal,html[data-theme=arctic] .ch-tip{color:var(--txt)}
-html[data-theme=arctic] .btn{color:var(--txt)}
-html[data-theme=arctic] .navbtn{color:var(--mut)}
+html[data-light] #modalbg{background:rgba(18,28,55,.34)}
+html[data-light] code{background:#eef2f8;color:#334; border-color:var(--line)}
+html[data-light] th{background:rgba(255,255,255,.85);color:var(--mut)}
+html[data-light] tr.detail td{background:#f3f6fb}
+html[data-light] .dfield pre{background:#f4f7fc;color:#243;border-color:var(--line2)}
+html[data-light] .kbd{background:#eef2f8;color:#55607a}
+html[data-light] tbody tr.row:hover{background:rgba(20,40,90,.05)}
+html[data-light] ::-webkit-scrollbar-thumb{background:#c3ccda}
+html[data-light] .toast,html[data-light] .modal,html[data-light] .ch-tip{color:var(--txt)}
+html[data-light] .btn{color:var(--txt)}
+html[data-light] .navbtn{color:var(--mut)}
 </style>
 <script>
 /* ===== NEXION experience layer: motywy, parallax, liczniki, mobile tabs ===== */
 (function(){
   var THEMES=[
+    {v:"goldlight",n:"Gold Light",c:"#d9b45a",bg:"#f5f2ea"},
     {v:"",n:"Midnight",c:"#8ea2ff",bg:"#05070e"},
     {v:"graphite",n:"Graphite",c:"#c3cbd8",bg:"#0d0e11"},
     {v:"arctic",n:"Arctic",c:"#2563eb",bg:"#e9edf4"},
@@ -1667,6 +1669,7 @@ html[data-theme=arctic] .navbtn{color:var(--mut)}
   function metaColor(v){var t=THEMES.filter(function(x){return x.v===v;})[0];return t?t.bg:"#05070e";}
   function applyTheme(v){
     if(v)document.documentElement.setAttribute("data-theme",v);else document.documentElement.removeAttribute("data-theme");
+    if(v==="arctic"||v==="goldlight")document.documentElement.setAttribute("data-light","1");else document.documentElement.removeAttribute("data-light");
     try{localStorage.setItem("nexion.theme",v);}catch(e){}
     var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",metaColor(v));
     var menu=document.getElementById("nxThemeMenu");
@@ -1689,7 +1692,7 @@ html[data-theme=arctic] .navbtn{color:var(--mut)}
     document.addEventListener("click",function(){menu.classList.remove("on");});
     wrap.appendChild(btn);wrap.appendChild(menu);host.insertBefore(wrap,host.firstChild);
     document.addEventListener("keydown",function(e){if(e.key==="t"&&!/input|textarea/i.test((e.target.tagName||""))){applyTheme(nextTheme());}});
-    var saved="";try{saved=localStorage.getItem("nexion.theme")||"";}catch(e){}
+    var saved="goldlight";try{var _s=localStorage.getItem("nexion.theme");saved=(_s===null?"goldlight":_s);}catch(e){}
     applyTheme(saved);
   }
   function nextTheme(){var cur=document.documentElement.getAttribute("data-theme")||"";var i=THEMES.map(function(t){return t.v;}).indexOf(cur);return THEMES[(i+1)%THEMES.length].v;}
