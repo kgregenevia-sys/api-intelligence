@@ -1088,7 +1088,18 @@ function renderRoad(sec){
  chartCard(cg,"c10","10 · Roadmapa wdrożenia (dni per API)",{type:"hbar",options:{legend:false},data:{items:window.__RM.picks.map(a=>({label:a.n,value:a.ttdD<90?a.ttdD:5}))}});
 }
 function roadmapPrint(rm){const w=window.open("","_blank");if(!w){toast("Zezwól na wyskakujące okna, aby wydrukować.","Druk","warn");return;}
- w.document.write(`<html><head><title>Roadmapa 30/60/90</title><style>body{font-family:sans-serif;padding:30px;color:#111}h1{color:#a5842a}h2{border-bottom:2px solid #d9b45a;padding-bottom:4px;margin-top:24px}li{margin:6px 0}</style></head><body><h1>Roadmapa 30/60/90 — ${rm.goal}</h1><p>Budżet: ${pln(rm.budget)} · Rekomendowane API: ${rm.picks.map(a=>a.n).join(", ")} · Kombinacja: ${rm.combo.t}</p>${rm.phases.map(p=>`<h2>${p.t}</h2><ul>${p.items.map(x=>`<li>${x}</li>`).join("")}</ul>`).join("")}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();}
+ w.document.write(`<html><head><title>Roadmapa 30/60/90</title><style>body{font-family:sans-serif;padding:30px;color:#111}h1{color:#a5842a}h2{border-bottom:2px solid #d9b45a;padding-bottom:4px;margin-top:24px}li{margin:6px 0}</style></head><body><h1>Roadmapa 30/60/90 — ${rm.goal}</h1><p>Budżet: ${pln(rm.budget)} · Rekomendowane API: ${rm.picks.map(a=>a.n).join(", ")} · Kombinacja: ${rm.combo.t}</p>${rm.phases.map(p=>`<h2>${p.t}</h2><ul>${p.items.map(x=>`<li>${x}</li>`).join("")}</ul>`).join("")}<script>window.onload=()=>window.print()<\/script><style id="nx-premium-cennik">
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.plans .plan{position:relative;border-radius:20px!important;padding:28px 22px 24px!important;overflow:visible}
+.plans .plan.reco{border:1px solid rgba(232,176,75,.6)!important;box-shadow:0 24px 60px rgba(232,176,75,.16),inset 0 1px 0 rgba(255,255,255,.07)!important}
+.plans .plan .badge{position:absolute!important;top:-12px;left:22px;background:linear-gradient(120deg,#E8B04B,#F6D488)!important;color:#20180a!important;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;box-shadow:0 6px 16px rgba(232,176,75,.35)}
+.plans .plan h3{font-size:22px;margin-bottom:8px}
+.plans .plan .price{font-size:38px!important;font-weight:900!important;letter-spacing:-.02em;margin:6px 0}
+.plans .plan .price small{font-size:14px;font-weight:400;opacity:.6}
+.plans .plan .btn{border-radius:12px!important;padding:14px!important;font-weight:800!important;margin-top:6px}
+.plans .plan .btn.gold{background:linear-gradient(120deg,#E8B04B,#F6D488)!important;color:#20180a!important;border:none!important;box-shadow:0 10px 24px rgba(232,176,75,.3)}
+</style>
+</body></html>`);w.document.close();}
 
 /* ============ AI OPPORTUNITY SCORE ============ */
 function openAI(){
