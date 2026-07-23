@@ -1160,8 +1160,8 @@ function renderSettings(sec){
  mhead(sec,"Ustawienia","Cennik, integracje i wygląd","lokalnie");
  const cfg=getStripe(),s=getSettings();
  const g=el("div","grid g2");sec.appendChild(g);
- g.innerHTML=`<div class="panel edge"><h3>Cena usługi</h3><div class="small mut" style="margin:6px 0">Ustaw ceny usług i linki płatności. Puste pole = „WYMAGA KONFIGURACJI”, przycisk nie udaje płatności.</div>
-  ${Object.keys(STRIPE_CONFIG).map(k=>`<div class="fld-in" style="margin-top:8px"><label>${k}</label><input data-sk="${k}" value="${cfg[k]||""}" placeholder="https://buy.stripe.com/..."></div>`).join("")}
+ g.innerHTML=`<div class="panel edge"><h3>Cena usługi</h3><div class="small mut" style="margin:6px 0">Ustaw cenę i link płatności dla każdego wariantu. Puste pole = plan nieaktywny.</div>
+  ${Object.keys(STRIPE_CONFIG).map(k=>`<div class="fld-in" style="margin-top:8px"><label>${({starterMonthly:'Starter — miesięcznie',starterYearly:'Starter — rocznie',professionalMonthly:'Professional — miesięcznie',professionalYearly:'Professional — rocznie',enterpriseMonthly:'Enterprise — miesięcznie',enterpriseYearly:'Enterprise — rocznie'})[k]||k}</label><input data-sk="${k}" value="${cfg[k]||""}" placeholder="Link do płatności"></div>`).join("")}
   <button class="btn gold" style="margin-top:12px" id="saveStripe">Zapisz linki Stripe</button></div>
   <div class="panel edge"><h3>Integracje i wygląd</h3>
    <div class="fld-in" style="margin-top:8px"><label>Webhook n8n / Supabase (dla formularzy)</label><input id="setHook" value="${s.webhook||""}" placeholder="https://…/webhook/leads"></div>
