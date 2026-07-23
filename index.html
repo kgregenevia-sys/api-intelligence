@@ -725,7 +725,7 @@ const IC={
  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L16.5 3h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5c.1-.3.1-.7.1-1z"/></svg>'
 };
 const MODULES=[
- {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},{id:"aiarch",label:"AI Architekt",render:renderAIArch},{id:"roi",label:"ROI Analyzer",render:renderROI},{id:"audit",label:"Agent Audytu",render:renderAudit},
+ {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},{id:"aiarch",label:"AI Architekt",render:renderAIArch},{id:"roi",label:"ROI Analyzer",render:renderROI},{id:"audit",label:"Agent Audytu",render:renderAudit},{id:"library",label:"Biblioteka projektów",render:renderLibrary},
  {id:"rank",label:"Ranking API",render:renderRanking,num:()=>API_DATA.length},
  {id:"deep",label:"TOP 30",render:renderDeep,num:()=>Object.keys(DEEP).length},
  {id:"combos",label:"Kombinacje API",render:renderCombos,num:()=>COMBOS.length},
@@ -1350,6 +1350,55 @@ function renderAudit(sec){
  box.querySelector("#nxAuGen").onclick=run;box.querySelector("#nxAuGoal").addEventListener("keydown",function(e){if(e.key==="Enter")run();});
 }
 /* ===================== /MODUŁ 9 ===================== */
+
+/* ===================== NEXION 2.0 · MODUŁ 8: BIBLIOTEKA GOTOWYCH PROJEKTÓW (240) ===================== */
+var NX_NICHES=[["Nieruchomości","real"],["E-commerce","ecom"],["Gastronomia","gastro"],["Fryzjer i beauty","beauty"],["Warsztat i auto","auto"],["Kancelaria prawna","legal"],["Klinika i medycyna","med"],["Fitness i siłownia","fit"],["Edukacja i kursy","edu"],["Agencja marketingowa","mkt"],["Finanse i księgowość","fin"],["Logistyka i transport","logi"],["HR i rekrutacja","hr"],["SaaS i startup","saas"],["Budowlanka","build"],["Turystyka i hotele","travel"],["Sklep lokalny","local"],["Coaching i szkolenia","coach"],["Nieruchomości premium","luxre"],["Handel B2B","b2b"]];
+var NX_PTYPES=[
+ {t:"CRM",cats:["comp","comm","ai"],d:"zbiera leady, przypomina o kontakcie i prowadzi lejek sprzedaży"},
+ {t:"Automatyzacja sprzedaży",cats:["comp","ai","comm"],d:"prowadzi klienta od zapytania do zamknięcia bez ręcznej pracy"},
+ {t:"Cold mailing",cats:["comm","mkt","ai"],d:"wysyła i pilnuje kampanii mailowych z personalizacją AI"},
+ {t:"Monitoring cen",cats:["comp","alt","infra"],d:"śledzi ceny i konkurencję, alarmuje o okazjach"},
+ {t:"Generator ofert",cats:["ai","pub"],d:"tworzy gotowe oferty i wyceny na podstawie danych klienta"},
+ {t:"AI Recepcja",cats:["comm","ai"],d:"odbiera zapytania, umawia terminy i odpowiada 24/7"},
+ {t:"Publikacja social media",cats:["mkt","ai","comm"],d:"publikuje treści na FB/IG/TikTok z jednego miejsca"},
+ {t:"Dashboard analityczny",cats:["infra","fin","comp"],d:"pokazuje wyniki, sprzedaż i KPI na żywo"},
+ {t:"Chatbot obsługi klienta",cats:["ai","comm"],d:"odpowiada na pytania klientów i przekazuje trudne sprawy dalej"},
+ {t:"System rezerwacji",cats:["comm","infra"],d:"przyjmuje rezerwacje, wysyła przypomnienia i synchronizuje kalendarz"},
+ {t:"Newsletter automatyczny",cats:["comm","mkt"],d:"buduje listę i wysyła cykliczne wiadomości z ofertami"},
+ {t:"Marketplace",cats:["comp","fin","infra"],d:"łączy sprzedających z kupującymi z płatnościami i dopasowaniem"}
+];
+var NX_LIB=null;
+function nxBuildLib(){if(NX_LIB)return NX_LIB;var out=[];NX_PTYPES.forEach(function(pt){NX_NICHES.forEach(function(ni){var goal={cats:pt.cats,name:pt.t+" dla: "+ni[0],ent:["records","events","results"]};var apis=nxPick(pt.cats,5);var days=apis.reduce(function(s,a){return s+(a.ttdD||2);},0);var rev=apis.reduce(function(s,a){return s+(a.rev||0);},0);out.push({name:pt.t+" — "+ni[0],type:pt.t,niche:ni[0],desc:pt.t+" dla branży „"+ni[0]+"”: "+pt.d+".",apis:apis,days:days,roi:Math.round(rev/Math.max(1,apis.length)),goal:goal});});});NX_LIB=out;return out;}
+function nxInstr(p){var paid=p.apis.filter(function(a){return !a.free;}).map(function(a){return a.n;}).join(", ")||"brak — wszystkie API mają plan darmowy";return["1. Załóż projekt w Supabase i wgraj schemat bazy (SQL z modułu AI Copilot).","2. Zaimportuj workflow do n8n (plik JSON poniżej).","3. Podłącz klucze API: "+paid+".","4. Ustaw adres webhooka n8n w aplikacji (Ustawienia).","5. Przetestuj przepływ na jednym rekordzie.","6. Włącz automatyzację i obserwuj alerty."];}
+function renderLibrary(sec){
+ mhead(sec,"Biblioteka projektów","240 gotowych projektów — opis, architektura, workflow, instrukcja, ROI","gotowe do wdrożenia");
+ var lib=nxBuildLib();
+ var bar=el("div","panel edge");bar.style.marginBottom="12px";
+ var types=["Wszystkie"].concat(NX_PTYPES.map(function(p){return p.t;}));
+ bar.innerHTML='<input id="nxLibQ" placeholder="Szukaj: branża lub typ (np. CRM, gastronomia, rezerwacje)" style="width:100%;background:var(--bg2,#0b2b28);border:1px solid var(--line,#1b4b46);color:var(--txt,#fff);border-radius:10px;padding:11px 14px;font-size:15px;outline:none"><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+types.map(function(t){return '<button class="btn" data-t="'+t+'" style="padding:5px 11px;font-size:12px">'+t+'</button>';}).join("")+'</div><div class="small mut" style="margin-top:8px">Łącznie w bibliotece: '+lib.length+' projektów</div>';
+ sec.appendChild(bar);
+ var grid=el("div","grid g2");sec.appendChild(grid);
+ var detail=el("div");detail.id="nxLibDetail";detail.style.marginTop="12px";sec.appendChild(detail);
+ var state={q:"",t:"Wszystkie",lim:24};
+ var openDetail=function(p){detail.innerHTML="";var d=el("div","panel edge hl");var svg=nxDiagram(p.apis,p.goal);var sl=nxSlug(p.name);
+  d.innerHTML='<h2 style="margin:0">'+p.name+'</h2><div class="mut small" style="margin:4px 0 10px">'+p.desc+'</div>'+
+  '<div class="statline"><div class="s"><div class="n">'+p.days+' dni</div><div class="l">czas wdrożenia</div></div><div class="s"><div class="n">'+p.roi+'/100</div><div class="l">potencjał ROI</div></div><div class="s"><div class="n">'+p.apis.length+'</div><div class="l">integracji</div></div></div>'+
+  '<h3 style="margin:14px 0 6px">Architektura</h3>'+svg+
+  '<h3 style="margin:14px 0 6px">Instrukcja wdrożenia</h3><ol style="margin:0 0 0 18px">'+nxInstr(p).map(function(s){return '<li style="padding:3px 0;font-size:13.5px">'+s.replace(/^\d+\.\s*/,"")+'</li>';}).join("")+'</ol>'+
+  '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn gold" id="nxLibWf">Pobierz workflow n8n (JSON)</button><button class="btn" id="nxLibSql">Pobierz schemat bazy (SQL)</button></div>';
+  detail.appendChild(d);
+  d.querySelector("#nxLibWf").onclick=function(){download("nexion_"+sl+"_workflow.json",nxWorkflow(p.apis,p.goal),"application/json");};
+  d.querySelector("#nxLibSql").onclick=function(){download("nexion_"+sl+"_schema.sql",nxSql(p.apis,p.goal),"text/plain");};
+  detail.scrollIntoView&&detail.scrollIntoView({behavior:"smooth",block:"start"});};
+ var draw=function(){grid.innerHTML="";var q=state.q.toLowerCase();var f=lib.filter(function(p){var okT=state.t==="Wszystkie"||p.type===state.t;var okQ=!q||(p.name.toLowerCase().indexOf(q)>=0||p.niche.toLowerCase().indexOf(q)>=0||p.type.toLowerCase().indexOf(q)>=0);return okT&&okQ;});
+  var show=f.slice(0,state.lim);show.forEach(function(p){var c=el("div","panel edge");c.style.cursor="pointer";c.innerHTML='<div style="font-weight:800;font-size:14px">'+p.name+'</div><div class="mut small" style="margin:4px 0 8px">'+p.desc+'</div><div class="small" style="color:var(--gold,#E8B04B)">'+p.days+' dni · ROI '+p.roi+'/100 · '+p.apis.length+' API</div>';c.onclick=function(){openDetail(p);};grid.appendChild(c);});
+  if(f.length>show.length){var more=el("div");more.style.gridColumn="1/-1";more.innerHTML='<button class="btn" id="nxLibMore" style="width:100%">Pokaż więcej ('+(f.length-show.length)+')</button>';grid.appendChild(more);more.querySelector("#nxLibMore").onclick=function(){state.lim+=24;draw();};}
+  if(!f.length){grid.innerHTML='<div class="small mut">Brak projektów dla tego wyszukiwania.</div>';}};
+ bar.querySelector("#nxLibQ").addEventListener("input",function(e){state.q=e.target.value;state.lim=24;draw();});
+ bar.querySelectorAll("[data-t]").forEach(function(b){b.onclick=function(){state.t=b.dataset.t;state.lim=24;bar.querySelectorAll("[data-t]").forEach(function(x){x.classList.toggle("gold",x.dataset.t===state.t);});draw();};});
+ draw();
+}
+/* ===================== /MODUŁ 8 ===================== */
 
 function renderSettings(sec){
  mhead(sec,"Ustawienia","Integracje, wygląd i dane","lokalnie");
