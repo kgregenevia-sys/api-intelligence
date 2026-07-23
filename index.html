@@ -1050,6 +1050,9 @@ function renderStripe(sec){
  if(!anyCfg)sec.appendChild(el("div","panel edge",`<b style="color:var(--amb)">⚠ WYMAGA KONFIGURACJI</b><div class="small mut" style="margin-top:4px">Linki Stripe nie zostały podane. Uzupełnij je w <a href="#" onclick="go('set');return false">Ustawieniach</a> lub w obiekcie <code>STRIPE_CONFIG</code>. Przyciski płatności są aktywne, ale nie przekierują bez linku — nigdy nie udajemy udanej płatności.</div>`));
  const tog=el("div");tog.style.margin="6px 0 16px";tog.innerHTML=`<span class="mut small" style="margin-right:10px">Rozliczenie:</span><div class="toggle" id="billTog"><button data-b="monthly" class="${BILLING==='monthly'?'on':''}">Miesięcznie</button><button data-b="yearly" class="${BILLING==='yearly'?'on':''}">Rocznie <span style="color:var(--grn)">−17%</span></button></div>`;
  sec.appendChild(tog);
+ const _cons=el("div","panel edge");_cons.style.cssText="margin:6px 0 14px";
+ _cons.innerHTML=`<div style="font-size:13px;font-weight:700;margin-bottom:8px">Zanim przejdziesz do płatności</div><label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#cfd7e6;cursor:pointer;margin-bottom:8px"><input type="checkbox" id="nxBuy1" style="margin-top:3px;transform:scale(1.2);accent-color:#E8B04B"> Akceptuję <a href="#" onclick="if(window.nxPrivacy)nxPrivacy();return false" style="color:#E8B04B">Regulamin i Politykę Prywatności</a>.</label><label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#cfd7e6;cursor:pointer"><input type="checkbox" id="nxBuy2" style="margin-top:3px;transform:scale(1.2);accent-color:#E8B04B"> Żądam rozpoczęcia usługi przed upływem 14 dni i przyjmuję utratę prawa odstąpienia po jej pełnym wykonaniu (art. 38 pkt 13 ustawy o prawach konsumenta).</label>`;
+ sec.appendChild(_cons);
  const plans=el("div","plans");sec.appendChild(plans);
  renderPlans(plans,cfg);
  tog.querySelectorAll("#billTog button").forEach(b=>b.onclick=()=>{BILLING=b.dataset.b;tog.querySelectorAll("#billTog button").forEach(x=>x.classList.toggle("on",x.dataset.b===BILLING));renderPlans(plans,getStripe());});
@@ -1074,6 +1077,7 @@ function renderPlans(host,cfg){
 function checkout(planId,link){
  if(!link){toast("Uzupełnij link w Ustawieniach lub STRIPE_CONFIG. Płatność nie zostanie udana bez konfiguracji.","Stripe nie został jeszcze skonfigurowany","warn");return;}
  if(!/^https:\/\/(buy\.stripe\.com|checkout\.stripe\.com)\//.test(link)){toast("Link nie wygląda na prawidłowy Stripe Payment Link (https://buy.stripe.com/...).","Nieprawidłowy link Stripe","err");return;}
+ var _b1=document.getElementById("nxBuy1"),_b2=document.getElementById("nxBuy2");if(!_b1||!_b2||!_b1.checked||!_b2.checked){toast("Zaznacz obie zgody przed przejściem do płatności.","Wymagane zgody","warn");if(_b1&&!_b1.checked)_b1.focus();return;}try{localStorage.setItem("nexion.buyConsent",new Date().toISOString());}catch(e){}
  toast("Przekierowanie do bezpiecznej płatności…","Płatność","ok");setTimeout(()=>{location.href=link;},600);
 }
 
