@@ -1129,8 +1129,6 @@ function roadmapPrint(rm){const w=window.open("","_blank");if(!w){toast("Zezwól
 .plans .plan .btn{border-radius:12px!important;padding:14px!important;font-weight:800!important;margin-top:6px}
 .plans .plan .btn.gold{background:linear-gradient(120deg,#E8B04B,#F6D488)!important;color:#20180a!important;border:none!important;box-shadow:0 10px 24px rgba(232,176,75,.3)}
 </style>
-<script>(function(){var el=document.getElementById('nx-intro');if(!el)return;var kill=function(){if(!el)return;el.classList.add('gone');setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);el=null;},650);};var show=true;try{var d=new Date().toISOString().slice(0,10);if(localStorage.getItem('nexion.introDay')===d)show=false;else localStorage.setItem('nexion.introDay',d);}catch(e){}if(!show){if(el.parentNode)el.parentNode.removeChild(el);return;}el.style.display='flex';var t=setTimeout(kill,3100);el.addEventListener('click',function(){clearTimeout(t);kill();});})();</script>
-<script>window.nxSetLang=function(l){try{localStorage.setItem("nexion.lang",l)}catch(e){}if(window.go)go("over");};</script>
 </body></html>`);w.document.close();}
 
 /* ============ AI OPPORTUNITY SCORE ============ */
@@ -1978,5 +1976,7 @@ html[data-light] .navbtn{color:var(--mut)}
   });
 })();
 </script>
+<script>(function(){var el=document.getElementById('nx-intro');if(!el)return;var kill=function(){if(!el)return;el.classList.add('gone');setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);el=null;},650);};var show=true;try{var d=new Date().toISOString().slice(0,10);if(localStorage.getItem('nexion.introDay')===d)show=false;else localStorage.setItem('nexion.introDay',d);}catch(e){}if(!show){if(el.parentNode)el.parentNode.removeChild(el);return;}el.style.display='flex';var t=setTimeout(kill,3100);el.addEventListener('click',function(){clearTimeout(t);kill();});})();</script>
+<script>window.nxSetLang=function(l){try{localStorage.setItem("nexion.lang",l)}catch(e){}if(window.go)go("over");};</script>
 </body>
 </html>
