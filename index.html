@@ -1157,10 +1157,10 @@ function exportLeads(fmt){const leads=getLeads();if(!leads.length){toast("Brak z
 function getSettings(){try{return JSON.parse(localStorage.getItem("apiIntel.settings"))||{}}catch(e){return{}}}
 function saveSettings(s){localStorage.setItem("apiIntel.settings",JSON.stringify(s));}
 function renderSettings(sec){
- mhead(sec,"Ustawienia","Konfiguracja Stripe, integracji i wyglądu","lokalnie");
+ mhead(sec,"Ustawienia","Cennik, integracje i wygląd","lokalnie");
  const cfg=getStripe(),s=getSettings();
  const g=el("div","grid g2");sec.appendChild(g);
- g.innerHTML=`<div class="panel edge"><h3>Stripe Payment Links</h3><div class="small mut" style="margin:6px 0">Wklej realne linki (https://buy.stripe.com/...). Puste = „WYMAGA KONFIGURACJI”, przycisk nie udaje płatności.</div>
+ g.innerHTML=`<div class="panel edge"><h3>Cena usługi</h3><div class="small mut" style="margin:6px 0">Ustaw ceny usług i linki płatności. Puste pole = „WYMAGA KONFIGURACJI”, przycisk nie udaje płatności.</div>
   ${Object.keys(STRIPE_CONFIG).map(k=>`<div class="fld-in" style="margin-top:8px"><label>${k}</label><input data-sk="${k}" value="${cfg[k]||""}" placeholder="https://buy.stripe.com/..."></div>`).join("")}
   <button class="btn gold" style="margin-top:12px" id="saveStripe">Zapisz linki Stripe</button></div>
   <div class="panel edge"><h3>Integracje i wygląd</h3>
