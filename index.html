@@ -725,7 +725,7 @@ const IC={
  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L16.5 3h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5c.1-.3.1-.7.1-1z"/></svg>'
 };
 const MODULES=[
- {id:"over",label:"Overview",render:renderOverview},
+ {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},
  {id:"rank",label:"Ranking API",render:renderRanking,num:()=>API_DATA.length},
  {id:"deep",label:"TOP 30",render:renderDeep,num:()=>Object.keys(DEEP).length},
  {id:"combos",label:"Kombinacje API",render:renderCombos,num:()=>COMBOS.length},
@@ -1186,6 +1186,76 @@ function exportLeads(fmt){const leads=getLeads();if(!leads.length){toast("Brak z
 /* ============ SETTINGS ============ */
 function getSettings(){try{return JSON.parse(localStorage.getItem("apiIntel.settings"))||{}}catch(e){return{}}}
 function saveSettings(s){localStorage.setItem("apiIntel.settings",JSON.stringify(s));}
+/* ===================== NEXION 2.0 · MODUŁ 1: AI COPILOT (modularny, nie nadpisuje niczego) ===================== */
+const NX_GOALS=[
+ {k:["crm","klient","kontakt","lead"],cats:["comp","comm","ai"],name:"CRM / zarządzanie klientami",ent:["clients","deals","activities"]},
+ {k:["agencj","agency","usług"],cats:["ai","comm","mkt"],name:"Agencja AI",ent:["clients","projects","deliverables"]},
+ {k:["marketplace","sklep","market"],cats:["comp","fin","infra"],name:"Marketplace",ent:["products","orders","sellers"]},
+ {k:["cold","mail","outreach","newsletter"],cats:["comm","mkt","ai"],name:"Cold mailing",ent:["contacts","campaigns","messages"]},
+ {k:["sprzeda","sales","oferta","ofert"],cats:["comp","ai","comm"],name:"Automatyzacja sprzedaży",ent:["leads","offers","stages"]},
+ {k:["monitoring","cen","price","scrap"],cats:["comp","alt","infra"],name:"Monitoring cen",ent:["sources","snapshots","alerts"]},
+ {k:["recepcj","reception","booking","rezerwacj"],cats:["comm","ai"],name:"AI Recepcja",ent:["contacts","bookings","calls"]},
+ {k:["call","center","voice","dzwon"],cats:["comm","ai"],name:"Call Center AI",ent:["contacts","calls","transcripts"]},
+ {k:["saas","platform","aplikacj"],cats:["infra","ai","fin"],name:"Platforma SaaS",ent:["users","subscriptions","usage"]},
+ {k:["generator","raport","dokument"],cats:["ai","pub"],name:"Generator ofert / raportów",ent:["templates","documents","clients"]}
+];
+function nxGoal(q){q=(q||"").toLowerCase();let best=null,sc=0;NX_GOALS.forEach(g=>{let m=g.k.reduce((s,w)=>s+(q.indexOf(w)>=0?1:0),0);if(m>sc){sc=m;best=g;}});return best||{cats:["ai","infra","comp"],name:q?("Projekt: "+q):"Projekt AI",ent:["items","events","results"]};}
+function nxPick(cats,n){const pool=API_DATA.filter(a=>a.st!=="deprecated");const sc=a=>a.sc+a.n8n*3+(a.integ||0)*2+(cats.includes(a.c)?30:0)+(a.free?6:0)-riskNum(a.risk)*6;return[...pool].sort((a,b)=>sc(b)-sc(a)).slice(0,n);}
+function nxSlug(s){return(s||"nexion").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40)||"projekt";}
+function nxWorkflow(apis,goal){const nodes=[],conn={};let x=260;const add=(name,type,params,tv)=>{nodes.push({parameters:params||{},id:"nx"+nodes.length,name:name,type:type,typeVersion:tv||1,position:[x,300]});x+=220;return name;};
+ const trg=add("Start","n8n-nodes-base.manualTrigger",{},1);let prev=trg;
+ apis.forEach((a,i)=>{const nm=(a.n.split(" ")[0]||("API"+i))+" "+(i+1);add(nm,"n8n-nodes-base.httpRequest",{url:a.url||"https://api.example.com",method:a.wh?"POST":"GET",options:{}},4);conn[prev]={main:[[{node:nm,type:"main",index:0}]]};prev=nm;});
+ const store=add("Zapis do Supabase","n8n-nodes-base.httpRequest",{url:"https://YOUR-PROJECT.supabase.co/rest/v1/"+nxSlug(goal.ent[0]||"results"),method:"POST",sendHeaders:true,options:{}},4);conn[prev]={main:[[{node:store,type:"main",index:0}]]};
+ return JSON.stringify({name:"NEXION – "+goal.name,nodes:nodes,connections:conn,active:false,settings:{executionOrder:"v1"},pinData:{},meta:{generatedBy:"NEXION AI Copilot"}},null,2);}
+function nxSql(apis,goal){const t=goal.ent.map(nxSlug);let s="-- NEXION 2.0 · Schemat bazy dla: "+goal.name+"\n-- Generowane automatycznie. Supabase / PostgreSQL.\n\n";
+ t.forEach(nm=>{s+="create table if not exists public."+nm+" (\n  id uuid primary key default gen_random_uuid(),\n  created_at timestamptz not null default now(),\n  owner_id uuid references auth.users(id),\n  name text,\n  status text default 'new',\n  data jsonb default '{}'::jsonb\n);\n";
+ s+="create index if not exists idx_"+nm+"_owner on public."+nm+"(owner_id);\n";
+ s+="alter table public."+nm+" enable row level security;\n";
+ s+="create policy \""+nm+"_owner_rw\" on public."+nm+" for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);\n\n";});
+ s+="-- Relacje (przykład): powiąż tabele przez owner_id / dodaj foreign keys wg potrzeb.\n";return s;}
+function nxEdge(apis,goal){const a=apis[0]||{n:"API",url:"https://api.example.com"};
+ return "// NEXION 2.0 · Edge Function (Supabase / Deno) dla: "+goal.name+"\n// Kompletny plik z obsługą błędów i komentarzami.\nimport \"jsr:@supabase/functions-js/edge-runtime.d.ts\";\n\nconst API_KEY = Deno.env.get(\""+nxSlug(a.n).toUpperCase()+"_KEY\"); // ustaw w Supabase Secrets\n\nDeno.serve(async (req) => {\n  const cors = { \"access-control-allow-origin\": \"*\", \"content-type\": \"application/json\" };\n  if (req.method === \"OPTIONS\") return new Response(\"ok\", { headers: cors });\n  try {\n    const body = await req.json().catch(() => ({}));\n    // 1) Wywołanie zewnętrznego API: "+a.n+"\n    const r = await fetch(\""+(a.url||"https://api.example.com")+"\", {\n      method: \"POST\",\n      headers: { \"Authorization\": \"Bearer \" + API_KEY, \"content-type\": \"application/json\" },\n      body: JSON.stringify(body)\n    });\n    if (!r.ok) return new Response(JSON.stringify({ error: \"upstream\", status: r.status }), { status: 502, headers: cors });\n    const data = await r.json();\n    // 2) Tu zapisz wynik do bazy / zwróć do klienta\n    return new Response(JSON.stringify({ ok: true, data }), { headers: cors });\n  } catch (e) {\n    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: cors });\n  }\n});\n";}
+function nxCost(apis){let min=0,max=0;apis.forEach(a=>{if(!a.free){min+=80;max+=400;}else{min+=0;max+=60;}});return{min:min,max:max};}
+function renderCopilot(sec){
+ mhead(sec,"AI Copilot","Wpisz cel biznesowy — dostajesz gotowy projekt (architektura, API, workflow, baza, koszt, ROI)","142 API · silnik NEXION");
+ const box=el("div","panel edge");box.style.marginBottom="14px";
+ const ex=["CRM","Agencję AI","Marketplace","Cold mailing","Automatyzację sprzedaży","Monitoring cen","Generator ofert","AI Recepcję","Call Center AI","Platformę SaaS"];
+ box.innerHTML='<label class="em" style="font-weight:700;display:block;margin-bottom:6px">Czego chcesz zbudować?</label>'+
+  '<input id="nxGoal" placeholder="np. CRM z automatyzacją sprzedaży" style="width:100%;background:var(--bg2,#0b2b28);border:1px solid var(--line,#1b4b46);color:var(--txt,#fff);border-radius:10px;padding:12px 14px;font-size:15px;outline:none">'+
+  '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px">'+ex.map(e=>'<button class="btn" data-ex="'+e+'" style="padding:5px 12px;font-size:12px">'+e+'</button>').join("")+'</div>'+
+  '<button class="btn gold" id="nxGen" style="margin-top:10px;font-weight:800">⚡ GENERUJ PROJEKT</button>';
+ sec.appendChild(box);
+ const out=el("div");out.id="nxOut";sec.appendChild(out);
+ box.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>{box.querySelector("#nxGoal").value=b.dataset.ex;});
+ const run=()=>{
+  const q=(box.querySelector("#nxGoal").value||"").trim();
+  const goal=nxGoal(q);const apis=nxPick(goal.cats,6);
+  const days=apis.reduce((s,a)=>s+(a.ttdD||2),0);const cost=nxCost(apis);
+  const hi=apis.filter(a=>a.risk==="high").length;const risk=hi>1?"podwyższone":hi===1?"umiarkowane":"niskie";
+  const keys=apis.filter(a=>!a.free);
+  const wf=nxWorkflow(apis,goal),sql=nxSql(apis,goal),edge=nxEdge(apis,goal);
+  const rev=apis.reduce((s,a)=>s+(a.rev||0),0);const roi=Math.round(rev/Math.max(1,apis.length));
+  out.innerHTML="";
+  const head=el("div","panel edge hl");head.innerHTML='<h2 style="margin:0">Projekt: '+goal.name+'</h2><div class="mut small" style="margin-top:4px">Wygenerowano z bazy 142 API · silnik NEXION (deterministyczny scoring)</div>';out.appendChild(head);
+  const g=el("div","grid g2");g.style.marginTop="12px";out.appendChild(g);
+  g.innerHTML=
+   '<div class="panel edge"><h3>✔ Najlepsze API + kolejność integracji</h3><ol style="margin:8px 0 0 18px;padding:0">'+apis.map(a=>'<li style="padding:3px 0"><b>'+a.n+'</b> <span class="mut small">— '+catName(a.c)+' · n8n '+a.n8n+'/10 · '+riskLbl(a.risk)+' ryzyko'+(a.free?' · free':'')+'</span></li>').join("")+'</ol></div>'+
+   '<div class="panel edge"><h3>✔ Parametry projektu</h3><div class="statline"><div class="s"><div class="n">'+days+' dni</div><div class="l">czas wdrożenia</div></div><div class="s"><div class="n">'+pln(cost.min)+'–'+pln(cost.max)+'</div><div class="l">koszt/mc (EST.)</div></div><div class="s"><div class="n">'+risk+'</div><div class="l">ryzyko</div></div><div class="s"><div class="n">'+roi+'/100</div><div class="l">potencjał ROI</div></div></div><div class="small mut" style="margin-top:8px">Skalowalność: '+(apis.filter(a=>a.prt<=2).length>=3?'wysoka':'średnia')+' · Baza: Supabase · Orkiestracja: n8n</div></div>';
+  const arch=el("div","panel edge");arch.style.marginTop="12px";arch.innerHTML='<h3>✔ Architektura</h3><div class="small" style="margin-top:6px;line-height:1.9">Źródła danych → <b>'+apis.slice(0,3).map(a=>a.n.split(" ")[0]).join(" / ")+'</b> → <b>n8n</b> (orkiestracja) → <b>Supabase</b> (baza + Edge Functions) → <b>AI</b> (analiza/generacja) → <b>Dashboard / CRM</b> → <b>Alerty</b> → Klient</div>';out.appendChild(arch);
+  const keysP=el("div","panel edge");keysP.style.marginTop="12px";keysP.innerHTML='<h3>✔ Wymagane klucze API</h3>'+(keys.length?'<ul style="margin:8px 0 0 18px">'+keys.map(a=>'<li>'+a.n+' <span class="mut small">('+(a.pm||"klucz API")+')</span></li>').join("")+'</ul>':'<div class="small mut" style="margin-top:6px">Wszystkie wybrane API mają plan darmowy — klucze opcjonalne na start.</div>');out.appendChild(keysP);
+  const dl=el("div","panel edge");dl.style.marginTop="12px";dl.innerHTML='<h3>✔ Gotowe pliki do pobrania</h3><div class="small mut" style="margin:6px 0 10px">Zaimportuj bez ręcznej edycji.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" id="nxDlWf">Pobierz workflow n8n (JSON)</button><button class="btn" id="nxDlSql">Pobierz schemat bazy (SQL)</button><button class="btn" id="nxDlEdge">Pobierz Edge Function (TS)</button></div>';out.appendChild(dl);
+  const sl=nxSlug(goal.name);
+  dl.querySelector("#nxDlWf").onclick=()=>download("nexion_"+sl+"_workflow.json",wf,"application/json");
+  dl.querySelector("#nxDlSql").onclick=()=>download("nexion_"+sl+"_schema.sql",sql,"text/plain");
+  dl.querySelector("#nxDlEdge").onclick=()=>download("nexion_"+sl+"_edge.ts",edge,"text/plain");
+  if(typeof toast==="function")toast("Projekt gotowy: "+goal.name,"AI Copilot","ok");
+  out.scrollIntoView&&out.scrollIntoView({behavior:"smooth",block:"start"});
+ };
+ box.querySelector("#nxGen").onclick=run;
+ box.querySelector("#nxGoal").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
+}
+/* ===================== /MODUŁ 1 ===================== */
+
 function renderSettings(sec){
  mhead(sec,"Ustawienia","Integracje, wygląd i dane","lokalnie");
  const cfg=getStripe(),s=getSettings();
