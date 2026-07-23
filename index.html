@@ -725,7 +725,7 @@ const IC={
  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L16.5 3h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5c.1-.3.1-.7.1-1z"/></svg>'
 };
 const MODULES=[
- {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},{id:"aiarch",label:"AI Architekt",render:renderAIArch},{id:"roi",label:"ROI Analyzer",render:renderROI},
+ {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},{id:"aiarch",label:"AI Architekt",render:renderAIArch},{id:"roi",label:"ROI Analyzer",render:renderROI},{id:"audit",label:"Agent Audytu",render:renderAudit},
  {id:"rank",label:"Ranking API",render:renderRanking,num:()=>API_DATA.length},
  {id:"deep",label:"TOP 30",render:renderDeep,num:()=>Object.keys(DEEP).length},
  {id:"combos",label:"Kombinacje API",render:renderCombos,num:()=>COMBOS.length},
@@ -1313,6 +1313,43 @@ function renderROI(sec){
  s.querySelectorAll("[data-r]").forEach(function(i){i.addEventListener("input",calc);});calc();
 }
 /* ===================== /MODUŁY 6+7 ===================== */
+
+/* ===================== NEXION 2.0 · MODUŁ 9: AGENT AUDYTU ===================== */
+function nxAudit(apis){
+ var f={err:[],dup:[],bottle:[],cost:[],risk:[],opt:[]};
+ var byCat={};apis.forEach(function(a){(byCat[a.c]=byCat[a.c]||[]).push(a);});
+ Object.keys(byCat).forEach(function(c){if(byCat[c].length>1)f.dup.push(catName(c)+": "+byCat[c].map(function(a){return a.n;}).join(", ")+" — nakładające się role, rozważ pozostawienie jednego.");});
+ apis.forEach(function(a){
+  if(a.st==="deprecated")f.err.push(a.n+" — status: WYCOFANE (deprecated), nie buduj na tym.");
+  if(a.risk==="high")f.err.push(a.n+" — wysokie ryzyko zmian/zamknięcia usługi.");
+  if(a.n8n<6)f.bottle.push(a.n+" — słaba integracja z n8n ("+a.n8n+"/10), więcej pracy ręcznej.");
+  if((a.stab||10)<6)f.bottle.push(a.n+" — niska stabilność ("+a.stab+"/10).");
+  if((a.ttdD||2)>4)f.bottle.push(a.n+" — długi czas wdrożenia ("+(a.ttd||"")+").");
+  if(a.risk==="med")f.risk.push(a.n+" — średnie ryzyko, miej plan awaryjny.");
+  if(a.risk!=="low"){var alt=API_DATA.filter(function(x){return x.c===a.c&&x.risk==="low"&&x.st!=="deprecated"&&x.n!==a.n;}).sort(function(p,q){return q.sc-p.sc;})[0];if(alt)f.opt.push("Zamiast "+a.n+" rozważ "+alt.n+" — niższe ryzyko, wynik "+alt.sc+"/100.");}
+ });
+ var paid=apis.filter(function(a){return !a.free;});if(paid.length)f.cost.push(paid.length+" API płatnych: "+paid.map(function(a){return a.n;}).join(", ")+". Pozostałe mają plan darmowy.");
+ var pen=f.err.length*15+f.dup.length*6+f.bottle.length*5+f.risk.length*3;var score=Math.max(0,100-pen);
+ return {f:f,score:score};
+}
+function renderAudit(sec){
+ mhead(sec,"Agent Audytu","Sprawdza projekt: błędy, duplikaty, wąskie gardła, koszty, ryzyko, optymalizacje","kontrola jakości");
+ var box=el("div","panel edge");box.style.marginBottom="14px";
+ box.innerHTML='<label class="em" style="font-weight:700;display:block;margin-bottom:6px">Jaki projekt zaudytować?</label><input id="nxAuGoal" placeholder="np. CRM, Cold mailing, Marketplace" style="width:100%;background:var(--bg2,#0b2b28);border:1px solid var(--line,#1b4b46);color:var(--txt,#fff);border-radius:10px;padding:12px 14px;font-size:15px;outline:none"><button class="btn gold" id="nxAuGen" style="margin-top:10px;font-weight:800">🔍 URUCHOM AUDYT</button>';
+ sec.appendChild(box);var out=el("div");out.id="nxAuOut";sec.appendChild(out);
+ var groups=[["err","Błędy","var(--red,#ff6b6b)"],["dup","Duplikaty","var(--amb,#e8b04b)"],["bottle","Wąskie gardła","var(--amb,#e8b04b)"],["risk","Ryzyko","var(--amb,#e8b04b)"],["cost","Koszty","var(--mut,#8a97b1)"],["opt","Propozycje optymalizacji","var(--grn,#3fce78)"]];
+ var run=function(){
+  var q=(box.querySelector("#nxAuGoal").value||"").trim();var goal=nxGoal(q);var apis=nxPick(goal.cats,6);var a=nxAudit(apis);
+  var col=a.score>=80?"var(--grn,#3fce78)":a.score>=55?"var(--amb,#e8b04b)":"var(--red,#ff6b6b)";
+  out.innerHTML="";
+  var h=el("div","panel edge hl");h.innerHTML='<h2 style="margin:0">Audyt: '+goal.name+'</h2><div class="statline" style="margin-top:8px"><div class="s"><div class="n" style="color:'+col+'">'+a.score+'/100</div><div class="l">ocena jakości</div></div><div class="s"><div class="n">'+a.f.err.length+'</div><div class="l">błędy</div></div><div class="s"><div class="n">'+(a.f.bottle.length+a.f.dup.length)+'</div><div class="l">do poprawy</div></div><div class="s"><div class="n">'+a.f.opt.length+'</div><div class="l">optymalizacji</div></div></div>';out.appendChild(h);
+  groups.forEach(function(g){var items=a.f[g[0]];if(!items.length)return;var p=el("div","panel edge");p.style.marginTop="12px";p.innerHTML='<h3 style="margin:0 0 8px;color:'+g[2]+'">'+g[1]+' ('+items.length+')</h3><ul style="margin:0 0 0 18px;padding:0">'+items.map(function(t){return '<li style="padding:3px 0;font-size:13.5px">'+t+'</li>';}).join("")+'</ul>';out.appendChild(p);});
+  if(a.f.err.length+a.f.dup.length+a.f.bottle.length+a.f.risk.length===0){var ok=el("div","panel edge");ok.style.marginTop="12px";ok.innerHTML='<div style="color:var(--grn,#3fce78);font-weight:700">✓ Brak istotnych problemów — projekt gotowy do wdrożenia.</div>';out.appendChild(ok);}
+  if(typeof toast==="function")toast("Audyt zakończony: "+a.score+"/100","Agent Audytu",a.score>=80?"ok":"warn");
+ };
+ box.querySelector("#nxAuGen").onclick=run;box.querySelector("#nxAuGoal").addEventListener("keydown",function(e){if(e.key==="Enter")run();});
+}
+/* ===================== /MODUŁ 9 ===================== */
 
 function renderSettings(sec){
  mhead(sec,"Ustawienia","Integracje, wygląd i dane","lokalnie");
