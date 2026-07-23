@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<!--NXBUILD:20260723-075348-->
+<!--NXBUILD:20260723-080249-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NEXION — Intelligence Terminal</title>
@@ -14,7 +14,7 @@
 <meta http-equiv="Expires" content="0">
 <script>
 /* NEXION auto-update: zawsze najswiezsza wersja bez czyszczenia cache */
-window.NX_BUILD="20260723-075348";
+window.NX_BUILD="20260723-080249";
 (function(){try{
   fetch(location.pathname.replace(/[?#].*$/,'')+'?_ck='+Date.now(),{cache:'no-store'})
    .then(function(r){return r.text();})
@@ -1871,7 +1871,12 @@ html[data-light] .navbtn{color:var(--mut)}
     var c=document.createElement("div");c.id="nxc-cta";c.innerHTML='<b>✦ Odblokuj pełny NEXION</b><span>Uzupełnij profil — dopasujemy analizy i okazje.</span>';
     c.onclick=window.nxProfile;var foot=side.querySelector(".side-foot");if(foot)side.insertBefore(c,foot);else side.appendChild(c);}
 
-  function start(){buildBanner();addCta();}
+  function start(){buildBanner();addCta();
+    try{var cs=new URLSearchParams(location.search).get("consent");
+      if(cs){ setTimeout(function(){ if(typeof toast==="function"){ if(cs==="confirmed")toast("Zgoda potwierdzona — dziękujemy!","RODO","ok"); else if(cs==="already")toast("Ta zgoda była już potwierdzona.","RODO"); else if(cs==="error")toast("Link potwierdzający jest nieprawidłowy lub wygasł.","RODO","err"); } },400);
+        if(history.replaceState)history.replaceState({},"",location.pathname); }
+    }catch(e){}
+  }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(start,120);});
   else setTimeout(start,120);
 })();
