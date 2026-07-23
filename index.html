@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<!--NXBUILD:20260723-073939-->
+<!--NXBUILD:20260723-074828-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NEXION — Intelligence Terminal</title>
@@ -14,7 +14,7 @@
 <meta http-equiv="Expires" content="0">
 <script>
 /* NEXION auto-update: zawsze najswiezsza wersja bez czyszczenia cache */
-window.NX_BUILD="20260723-073939";
+window.NX_BUILD="20260723-074828";
 (function(){try{
   fetch(location.pathname.replace(/[?#].*$/,'')+'?_ck='+Date.now(),{cache:'no-store'})
    .then(function(r){return r.text();})
@@ -1113,7 +1113,7 @@ function openForm(key){const f=FORMS[key];const fld=f.fields.map(fd=>{const[n,l,
 function submitForm(key){const data={type:key,at:new Date().toISOString()};let ok=true;$$("#modal [data-n]").forEach(i=>{data[i.dataset.n]=i.value;if(i.type==="email"&&i.value&&!/^[^@]+@[^@]+\.[^@]+$/.test(i.value))ok=false;});if(!ok){toast("Podaj prawidłowy e-mail.","Formularz","err");return;}
  const leads=getLeads();leads.push(data);localStorage.setItem("apiIntel.leads",JSON.stringify(leads));
  try{fetch(APIINTEL_FORM_EP,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email:(data.email||data.mail||data["e-mail"]||"").toString(),form_type:key,payload:data,source:"dashboard"})}).catch(function(){});}catch(e){}
- toast("Zgłoszenie zapisane ("+leads.length+" lokalnie, wysłane do bazy AUREU).","Zapisano","ok");
+ toast("Zgłoszenie zapisane ("+leads.length+" lokalnie, wysłane do bazy NEXION).","Zapisano","ok");
  closeModal();
 }
 function getLeads(){try{return JSON.parse(localStorage.getItem("apiIntel.leads"))||[]}catch(e){return[]}}
@@ -1239,7 +1239,7 @@ function heroLoop(ts){const H=HERO;if(!H.canvas||!document.body.contains(H.canva
  if(!REDUCE())H.raf=requestAnimationFrame(heroLoop);}
 function renderHero(host){const s=computeHero();HERO.opp=s.opp;
  host.innerHTML='<div class="hero-core surface-3"><div class="orb-wrap"><canvas id="orbCanvas"></canvas><div class="orb-score"><div class="n" id="orbNum">0</div><div class="l">Opportunity Score</div></div></div>'+
- '<div class="hero-info"><div class="hero-title"><h2>AUREU Intelligence Core</h2><span class="hero-badge">LIVE</span><span class="hero-sel"><select id="heroInd"><option value="">Wszystkie branże</option>'+CATS.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join('')+'</select><span id="accentDots" style="display:flex;gap:6px"></span></span></div>'+
+ '<div class="hero-info"><div class="hero-title"><h2>NEXION Intelligence Core</h2><span class="hero-badge">LIVE</span><span class="hero-sel"><select id="heroInd"><option value="">Wszystkie branże</option>'+CATS.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join('')+'</select><span id="accentDots" style="display:flex;gap:6px"></span></span></div>'+
  '<div class="hero-stats"><div class="hero-stat"><div class="n" id="hsMrr">0</div><div class="l">Możliwy MRR ESTYMACJA</div></div><div class="hero-stat"><div class="n" id="hsRisk">'+s.risk+'</div><div class="l">Poziom ryzyka</div></div><div class="hero-stat"><div class="n" id="hsSys">0</div><div class="l">Aktywne systemy</div></div><div class="hero-stat"><div class="n" id="hsAlert">0</div><div class="l">Alerty</div></div></div>'+
  '<div class="hero-reco"><div class="k">Najlepsza rekomendacja</div><div style="margin-top:3px"><b id="hsBest">'+s.best.n+'</b> <span class="mut small">— '+catName(s.best.c)+' · ocena '+s.best.sc+'/100</span></div></div>'+
  '<div style="display:flex;align-items:center;gap:10px"><span class="mut small">Budżet:</span><input id="heroBudget" type="range" min="5000" max="150000" step="5000" value="'+APP.budget+'" style="flex:1;accent-color:var(--gold)"><span id="heroBudgetV" class="small" style="color:var(--gold2);width:84px;text-align:right">'+pln(APP.budget)+'</span></div>'+
@@ -1262,7 +1262,7 @@ function updateHero(){if(!HERO.canvas)return;const s=computeHero();HERO.opp=s.op
 
 /* ---- OVERVIEW (recomposed) ---- */
 function renderOverview(sec){
- mhead(sec,'Executive Command Center','Rdzeń decyzyjny AUREU — jeden obraz stanu i najlepsza droga','na żywo');
+ mhead(sec,'Executive Command Center','Rdzeń decyzyjny NEXION — jeden obraz stanu i najlepsza droga','na żywo');
  const hero=el('div');sec.appendChild(hero);renderHero(hero);
  sec.appendChild(sectionH('Sygnał wzrostu'));
  const primary=el('div');primary.style.cssText='display:grid;grid-template-columns:1.7fr 1fr;gap:14px';sec.appendChild(primary);
@@ -1739,6 +1739,142 @@ html[data-light] .navbtn{color:var(--mut)}
   function start(){initSwitcher();parallax();wrapGo();buildTabs();setTimeout(nxCount,120);setTimeout(nxCount,600);}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(start,60);});
   else setTimeout(start,60);
+})();
+</script>
+<script>
+/* ===== NEXION — zgody, RODO i pozyskiwanie danych ===== */
+(function(){
+  var CONSENT_EP="https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/apiintel-consent";
+  var FORM_EP="https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/apiintel-form";
+  var POLICY="1.0";
+  function sid(){var s;try{s=localStorage.getItem("nexion.sid");if(!s){s="s_"+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("nexion.sid",s);}}catch(e){s="s_anon";}return s;}
+  function post(u,b){try{return fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b)}).catch(function(){});}catch(e){}}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+
+  var st=document.createElement("style");
+  st.textContent=""
+   +"#nxc-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:9997;max-width:660px;margin:0 auto;background:var(--glass);backdrop-filter:blur(18px) saturate(1.2);border:1px solid var(--line2);border-radius:16px;padding:16px 18px;box-shadow:var(--sh);display:none}"
+   +"#nxc-banner.on{display:block}"
+   +"#nxc-banner h4{font-family:var(--disp);font-size:15px;margin:0 0 6px;color:var(--txt)}"
+   +"#nxc-banner p{font-size:12.5px;color:var(--mut);line-height:1.55;margin:0 0 12px}"
+   +".nxc-row{display:flex;gap:8px;flex-wrap:wrap}"
+   +".nxc-btn{border:1px solid var(--line2);background:rgba(150,150,150,.08);color:var(--txt);border-radius:10px;padding:9px 15px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}"
+   +".nxc-btn:hover{border-color:var(--acc)}"
+   +".nxc-btn.primary{background:linear-gradient(180deg,var(--acc2),var(--acc));color:var(--on-acc);border:0}"
+   +".nxc-cats{margin:8px 0 12px;display:none}"
+   +".nxc-cats.on{display:block}"
+   +".nxc-cat{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--txt)}"
+   +".nxc-cat b{font-weight:650}.nxc-cat small{color:var(--mut);display:block;font-size:11px;margin-top:2px}"
+   +".nxc-cat input{margin-left:auto;flex:none;width:18px;height:18px;accent-color:var(--acc);margin-top:2px}"
+   +"a.nxc-link{color:var(--acc);cursor:pointer;text-decoration:underline}"
+   +".nxc-rodo{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}"
+   +".nxc-rodo label{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:var(--txt);cursor:pointer}"
+   +".nxc-rodo label input{margin-top:2px;flex:none;width:16px;height:16px;accent-color:var(--acc)}"
+   +".nxc-clause{font-size:10.5px;color:var(--mut);line-height:1.5;margin-top:8px}"
+   +"#nxc-cta{margin:8px 6px 4px;padding:12px;border-radius:12px;background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 14%,transparent),transparent);border:1px solid color-mix(in srgb,var(--acc) 30%,transparent);cursor:pointer;transition:.15s}"
+   +"#nxc-cta:hover{border-color:var(--acc)}"
+   +"#nxc-cta b{display:block;font-size:12.5px;color:var(--txt);font-weight:650}#nxc-cta span{font-size:11px;color:var(--mut)}"
+   +"@media(max-width:900px){#nxc-banner{bottom:calc(80px + env(safe-area-inset-bottom))}}";
+  document.head.appendChild(st);
+
+  /* ---------- POLITYKA PRYWATNOSCI ---------- */
+  function policyHTML(){return '<h2>Polityka prywatności &amp; RODO</h2>'
+   +'<div class="mut small" style="line-height:1.6;margin-top:8px">'
+   +'<p><b>Administrator danych:</b> NEXION (KG Regenevia), kontakt: <a href="mailto:kg.regenevia@gmail.com">kg.regenevia@gmail.com</a>.</p>'
+   +'<p style="margin-top:8px"><b>Jakie dane zbieramy:</b> dane podane w formularzach (imię, e-mail, telefon, firma, stanowisko, budżet, cele, preferencje), dane techniczne (adres IP, przeglądarka), zdarzenia w serwisie oraz zapis Twoich zgód (data, zakres, IP) jako dowód zgody.</p>'
+   +'<p style="margin-top:8px"><b>Cele i podstawy prawne:</b> obsługa zapytań i kontakt — art. 6 ust. 1 lit. b/f RODO; marketing i oferty — art. 6 ust. 1 lit. a RODO (Twoja dobrowolna zgoda); analityka i personalizacja — na podstawie Twojej zgody; rozliczenia i bezpieczeństwo — art. 6 ust. 1 lit. c/f RODO.</p>'
+   +'<p style="margin-top:8px"><b>Odbiorcy:</b> dostawcy infrastruktury (m.in. Supabase, Stripe, dostawca e-mail), działający na nasze zlecenie.</p>'
+   +'<p style="margin-top:8px"><b>Okres przechowywania:</b> do czasu cofnięcia zgody lub realizacji celu; dane rozliczeniowe zgodnie z przepisami.</p>'
+   +'<p style="margin-top:8px"><b>Twoje prawa:</b> dostęp, sprostowanie, usunięcie, ograniczenie, przenoszenie, sprzeciw oraz cofnięcie zgody w każdej chwili (bez wpływu na wcześniejsze przetwarzanie). Masz prawo skargi do PUODO.</p>'
+   +'<p style="margin-top:8px">Podanie danych jest dobrowolne, ale niezbędne do obsługi zapytania. Zgoda marketingowa jest w pełni dobrowolna.</p>'
+   +'<div style="margin-top:14px"><button class="btn gold" onclick="closeModal()">Rozumiem</button></div></div>';}
+  window.nxPrivacy=function(){ if(typeof modal==="function")modal(policyHTML()); };
+
+  /* ---------- BANER ZGOD ---------- */
+  function applyConsent(c){ try{window.__nxConsent=c;}catch(e){} }
+  function getStored(){try{return JSON.parse(localStorage.getItem("nexion.consent")||"null");}catch(e){return null;}}
+  function saveConsent(cats,action){ try{localStorage.setItem("nexion.consent",JSON.stringify({cats:cats,action:action,t:Date.now(),v:POLICY}));}catch(e){}
+    post(CONSENT_EP,{session_id:sid(),categories:cats,action:action,policy_version:POLICY,source:"banner"}); applyConsent(cats); hideBanner(); }
+  var banner;
+  function hideBanner(){ if(banner)banner.classList.remove("on"); }
+  function buildBanner(){
+    banner=document.createElement("div");banner.id="nxc-banner";
+    banner.innerHTML='<h4>Szanujemy Twoją prywatność</h4>'
+     +'<p>Używamy plików cookie i podobnych technologii, aby zapewnić działanie serwisu, analizować ruch, personalizować treści oraz prowadzić marketing. „Niezbędne" są zawsze aktywne. Możesz zaakceptować wszystko, wybrać tylko niezbędne albo dostosować. Szczegóły w <a class="nxc-link" onclick="nxPrivacy()">Polityce prywatności</a>.</p>'
+     +'<div class="nxc-cats" id="nxcCats">'
+     +'<div class="nxc-cat"><div><b>Niezbędne</b><small>Wymagane do działania serwisu i bezpieczeństwa.</small></div><input type="checkbox" checked disabled></div>'
+     +'<div class="nxc-cat"><div><b>Analityka</b><small>Pomiar ruchu i zachowań, aby ulepszać produkt.</small></div><input type="checkbox" id="nxcAnal"></div>'
+     +'<div class="nxc-cat"><div><b>Marketing</b><small>Dopasowane oferty, kampanie, remarketing.</small></div><input type="checkbox" id="nxcMkt"></div>'
+     +'<div class="nxc-cat"><div><b>Personalizacja</b><small>Zapamiętywanie preferencji i dopasowanie treści.</small></div><input type="checkbox" id="nxcPers"></div>'
+     +'</div>'
+     +'<div class="nxc-row">'
+     +'<button class="nxc-btn primary" id="nxcAll">Akceptuję wszystko</button>'
+     +'<button class="nxc-btn" id="nxcNec">Tylko niezbędne</button>'
+     +'<button class="nxc-btn" id="nxcCust">Ustawienia</button>'
+     +'</div>';
+    document.body.appendChild(banner);
+    banner.querySelector("#nxcAll").onclick=function(){saveConsent({analytics:true,marketing:true,personalization:true},"accept_all");};
+    banner.querySelector("#nxcNec").onclick=function(){saveConsent({analytics:false,marketing:false,personalization:false},"necessary_only");};
+    banner.querySelector("#nxcCust").onclick=function(){var c=banner.querySelector("#nxcCats");if(c.classList.contains("on")){saveConsent({analytics:banner.querySelector("#nxcAnal").checked,marketing:banner.querySelector("#nxcMkt").checked,personalization:banner.querySelector("#nxcPers").checked},"custom");}else{c.classList.add("on");this.textContent="Zapisz wybór";}};
+    if(!getStored())banner.classList.add("on");else applyConsent(getStored().cats||{});
+  }
+
+  /* ---------- FORMULARZ PROFILU (max dane) ---------- */
+  function sel(id,label,opts){return '<div class="fld-in"><label>'+label+'</label><select data-n="'+id+'"><option value=""></option>'+opts.map(function(o){return '<option>'+esc(o)+'</option>';}).join("")+'</select></div>';}
+  function inp(id,label,type){return '<div class="fld-in"><label>'+label+'</label><input data-n="'+id+'" type="'+(type||"text")+'"></div>';}
+  window.nxProfile=function(){
+    if(typeof modal!=="function")return;
+    modal('<h2>Odblokuj pełny NEXION — profil</h2>'
+     +'<div class="mut small" style="margin:6px 0 12px">Uzupełnij profil, a dopasujemy analizy, okazje i rekomendacje pod Ciebie. Im więcej podasz, tym trafniej.</div>'
+     +'<div class="form-grid">'
+     +inp("first_name","Imię","text")+inp("last_name","Nazwisko","text")
+     +inp("email","E-mail","email")+inp("phone","Telefon","tel")
+     +inp("company","Firma","text")+inp("role","Stanowisko","text")
+     +sel("company_size","Wielkość firmy",["1 (solo)","2–10","11–50","51–200","200+"])
+     +sel("industry","Branża",["Fintech","E-commerce","Nieruchomości","SaaS","Marketing","AI/Automatyzacja","Inne"])
+     +sel("budget","Budżet na wdrożenie",["do 10k","10–30k","30–100k","100k+"])
+     +sel("timeline","Termin",["ASAP","1 miesiąc","kwartał","brak"])
+     +'<div class="fld-in wide"><label>Główny cel / problem</label><textarea data-n="goal" rows="2"></textarea></div>'
+     +sel("source","Skąd o nas?",["Google","LinkedIn","Polecenie","Reklama","Inne"])
+     +'</div>'
+     +'<div class="nxc-rodo"><label><input type="checkbox" id="nxMkt"> Chcę otrzymywać dopasowane oferty, analizy i nowości NEXION (e-mail/telefon). Zgoda dobrowolna, mogę ją cofnąć w każdej chwili.</label>'
+     +'<div class="nxc-clause">Podając dane wyrażasz zgodę na ich przetwarzanie przez NEXION (KG Regenevia) w celu obsługi zgłoszenia (art. 6 ust. 1 lit. b/f RODO). Przysługują Ci prawa dostępu, sprostowania, usunięcia, sprzeciwu i cofnięcia zgody. <a class="nxc-link" onclick="nxPrivacy()">Polityka prywatności</a>.</div></div>'
+     +'<div style="display:flex;gap:8px;margin-top:14px"><button class="btn gold" onclick="nxSubmitProfile()">Zapisz profil →</button><button class="btn" onclick="closeModal()">Anuluj</button></div>');
+  };
+  window.nxSubmitProfile=function(){
+    var m=document.getElementById("modal");if(!m)return;var data={};var ok=true;
+    m.querySelectorAll("[data-n]").forEach(function(i){data[i.dataset.n]=i.value;if(i.type==="email"&&i.value&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(i.value))ok=false;});
+    if(!data.email){ if(typeof toast==="function")toast("Podaj e-mail, żeby zapisać profil.","Profil","warn"); return; }
+    if(!ok){ if(typeof toast==="function")toast("Popraw adres e-mail.","Profil","err"); return; }
+    var mkt=document.getElementById("nxMkt");var checked=!!(mkt&&mkt.checked);
+    post(FORM_EP,{email:data.email,form_type:"profil",phone:data.phone||"",company:data.company||"",marketing_opt_in:checked,session_id:sid(),policy_version:POLICY,source:"profil",payload:data});
+    if(typeof closeModal==="function")closeModal();
+    if(typeof toast==="function")toast("Dziękujemy! Profil zapisany, dopasujemy rekomendacje.","Profil","ok");
+  };
+
+  /* ---------- WZBOGACENIE ISTNIEJACYCH FORMULARZY o RODO + marketing ---------- */
+  function injectRodo(){var m=document.getElementById("modal");if(!m||m.querySelector(".nxc-rodo")||m.querySelector("#nxSubmitProfileMarker"))return;var fg=m.querySelector(".form-grid");if(!fg)return;
+    var d=document.createElement("div");d.className="nxc-rodo";
+    d.innerHTML='<label><input type="checkbox" id="nxMkt"> Chcę otrzymywać dopasowane oferty, analizy i nowości NEXION (e-mail/telefon) — zgoda dobrowolna, do cofnięcia w każdej chwili.</label>'
+     +'<div class="nxc-clause">Podając dane wyrażasz zgodę na przetwarzanie przez NEXION (KG Regenevia) w celu obsługi zgłoszenia (art. 6 ust. 1 lit. b/f RODO). Prawa: dostęp, sprostowanie, usunięcie, sprzeciw, cofnięcie zgody. <a class="nxc-link" onclick="nxPrivacy()">Polityka prywatności</a>.</div>';
+    fg.parentNode.insertBefore(d,fg.nextSibling);
+  }
+  if(typeof window.openForm==="function"&&!window.openForm.__nx){var _of=window.openForm;window.openForm=function(k){_of(k);setTimeout(injectRodo,25);};window.openForm.__nx=1;}
+  if(typeof window.submitForm==="function"&&!window.submitForm.__nx){var _sf=window.submitForm;window.submitForm=function(k){
+    var mkt=document.getElementById("nxMkt");var checked=!!(mkt&&mkt.checked);
+    var e=document.querySelector('#modal [data-n="email"]');var em=e?e.value:"";
+    _sf(k);
+    if(checked&&em)post(CONSENT_EP,{email:em,session_id:sid(),categories:{marketing:true},marketing:true,marketing_opt_in:true,action:"form",source:k,policy_version:POLICY});
+  };window.submitForm.__nx=1;}
+
+  /* ---------- CTA profilu w sidebarze ---------- */
+  function addCta(){var side=document.getElementById("side");if(!side||document.getElementById("nxc-cta"))return;
+    var c=document.createElement("div");c.id="nxc-cta";c.innerHTML='<b>✦ Odblokuj pełny NEXION</b><span>Uzupełnij profil — dopasujemy analizy i okazje.</span>';
+    c.onclick=window.nxProfile;var foot=side.querySelector(".side-foot");if(foot)side.insertBefore(c,foot);else side.appendChild(c);}
+
+  function start(){buildBanner();addCta();}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(start,120);});
+  else setTimeout(start,120);
 })();
 </script>
 </body>
