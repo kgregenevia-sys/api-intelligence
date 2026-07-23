@@ -1202,6 +1202,91 @@ const NX_GOALS=[
 function nxGoal(q){q=(q||"").toLowerCase();let best=null,sc=0;NX_GOALS.forEach(g=>{let m=g.k.reduce((s,w)=>s+(q.indexOf(w)>=0?1:0),0);if(m>sc){sc=m;best=g;}});return best||{cats:["ai","infra","comp"],name:q?("Projekt: "+q):"Projekt AI",ent:["items","events","results"]};}
 function nxPick(cats,n){const pool=API_DATA.filter(a=>a.st!=="deprecated");const sc=a=>a.sc+a.n8n*3+(a.integ||0)*2+(cats.includes(a.c)?30:0)+(a.free?6:0)-riskNum(a.risk)*6;return[...pool].sort((a,b)=>sc(b)-sc(a)).slice(0,n);}
 function nxSlug(s){return(s||"nexion").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40)||"projekt";}
+function nxB64(str){return btoa(unescape(encodeURIComponent(str)));}
+function nxDeployPanel(mount,files){
+  if(mount.querySelector("#nxDeployBox"))return;
+  var st="padding:8px;border-radius:8px;border:1px solid #2a3550;background:#0c1322;color:#eaf0fb;width:100%;font-size:13px;box-sizing:border-box";
+  var box=el("div","panel edge");box.id="nxDeployBox";box.style.marginTop="12px";
+  box.innerHTML='<h3>🚀 Wdroż jednym kliknięciem</h3>'
+   +'<div class="small mut" style="margin:4px 0 10px">Twoje tokeny są używane tylko w tej przeglądarce, do jednego żądania. Nie zapisujemy ich nigdzie.</div>'
+   +'<div style="border-top:1px solid var(--line,#1b4b46);padding:10px 0"><b>GitHub</b> <span class="mut small">— wypchnij workflow + SQL + Edge Function do repo</span>'
+   +'<div style="display:grid;gap:6px;margin-top:6px">'
+   +'<input id="nxGhRepo" placeholder="wlasciciel/repozytorium" style="'+st+'">'
+   +'<input id="nxGhPath" value="nexion/'+files.slug+'" style="'+st+'">'
+   +'<input id="nxGhTok" type="password" placeholder="token GitHub (ghp_... lub github_pat_...)" style="'+st+'">'
+   +'<button class="btn gold" id="nxGhPush">Wypchnij do GitHub</button></div>'
+   +'<div class="small" id="nxGhOut" style="margin-top:6px"></div></div>'
+   +'<div style="border-top:1px solid var(--line,#1b4b46);padding:10px 0"><b>n8n</b> <span class="mut small">— zaimportuj workflow bezpośrednio</span>'
+   +'<div style="display:grid;gap:6px;margin-top:6px">'
+   +'<input id="nxN8nUrl" placeholder="https://twoj-n8n.pl" style="'+st+'">'
+   +'<input id="nxN8nKey" type="password" placeholder="n8n API key (X-N8N-API-KEY)" style="'+st+'">'
+   +'<button class="btn" id="nxN8nPush">Wyślij workflow do n8n</button></div>'
+   +'<div class="small" id="nxN8nOut" style="margin-top:6px"></div></div>'
+   +'<div style="border-top:1px solid var(--line,#1b4b46);padding:10px 0"><b>Supabase</b> <span class="mut small">— baza + Edge Function</span>'
+   +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">'
+   +'<button class="btn" id="nxSbSql">Kopiuj SQL + otwórz SQL Editor</button>'
+   +'<button class="btn" id="nxSbEdge">Kopiuj komendę deploy</button></div>'
+   +'<div class="small mut" style="margin-top:6px">Nie wklejaj klucza service_role w przeglądarce — te operacje wykonaj w panelu Supabase.</div>'
+   +'<div class="small" id="nxSbOut" style="margin-top:6px"></div></div>';
+  mount.appendChild(box);
+  box.querySelector("#nxGhPush").onclick=async function(){
+    var out=box.querySelector("#nxGhOut");
+    var repo=(box.querySelector("#nxGhRepo").value||"").trim();
+    var prefix=(box.querySelector("#nxGhPath").value||"").trim().replace(/^\/+|\/+$/g,"");
+    var tok=(box.querySelector("#nxGhTok").value||"").trim();
+    if(!/^[^\/\s]+\/[^\/\s]+$/.test(repo)){out.innerHTML='<span style="color:#ff8a8a">Podaj repo w formacie wlasciciel/repozytorium.</span>';return;}
+    if(!tok){out.innerHTML='<span style="color:#ff8a8a">Podaj token GitHub.</span>';return;}
+    if(!prefix)prefix="nexion/"+files.slug;
+    var items=[{p:prefix+"/workflow.json",c:files.workflow},{p:prefix+"/schema.sql",c:files.sql}];
+    if(files.edge)items.push({p:prefix+"/edge_function.ts",c:files.edge});
+    out.innerHTML="Wysyłam...";var res=[];
+    for(var i=0;i<items.length;i++){
+      var it=items[i];
+      try{
+        var sha=null;
+        var path=it.p.split("/").map(encodeURIComponent).join("/");
+        var g=await fetch("https://api.github.com/repos/"+repo+"/contents/"+path,{headers:{Authorization:"token "+tok,Accept:"application/vnd.github+json"}});
+        if(g.status===200){var gj=await g.json();sha=gj.sha;}
+        var bd={message:"NEXION: "+files.name,content:nxB64(it.c)};if(sha)bd.sha=sha;
+        var r=await fetch("https://api.github.com/repos/"+repo+"/contents/"+path,{method:"PUT",headers:{Authorization:"token "+tok,Accept:"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify(bd)});
+        var j=await r.json();
+        if(r.ok){res.push('<div style="color:#7fe0a8">✔ '+it.p+' → <a href="'+((j.content&&j.content.html_url)||"#")+'" target="_blank" style="color:#E8B04B">zobacz</a></div>');}
+        else{res.push('<div style="color:#ff8a8a">✖ '+it.p+': '+((j&&j.message)||r.status)+'</div>');}
+      }catch(e){res.push('<div style="color:#ff8a8a">✖ '+it.p+': '+String(e)+'</div>');}
+      out.innerHTML=res.join("");
+    }
+    out.innerHTML=res.join("")+'<div class="mut small" style="margin-top:4px">Token użyty tylko teraz, w tej przeglądarce.</div>';
+    if(typeof toast==="function")toast("Wypchnięto do GitHub: "+repo,"Deploy","ok");
+  };
+  box.querySelector("#nxN8nPush").onclick=async function(){
+    var out=box.querySelector("#nxN8nOut");
+    var base=(box.querySelector("#nxN8nUrl").value||"").trim().replace(/\/+$/,"");
+    var key=(box.querySelector("#nxN8nKey").value||"").trim();
+    if(!base){out.innerHTML='<span style="color:#ff8a8a">Podaj adres n8n.</span>';return;}
+    out.innerHTML="Wysyłam...";
+    var wf;try{wf=JSON.parse(files.workflow);}catch(e){wf={};}
+    var payload={name:wf.name||("NEXION "+files.name),nodes:wf.nodes||[],connections:wf.connections||{},settings:wf.settings||{}};
+    try{
+      var r=await fetch(base+"/api/v1/workflows",{method:"POST",headers:{"X-N8N-API-KEY":key,"Content-Type":"application/json","accept":"application/json"},body:JSON.stringify(payload)});
+      var j=await r.json().catch(function(){return {};});
+      if(r.ok){var id=j.id||(j.data&&j.data.id);out.innerHTML='<span style="color:#7fe0a8">✔ Zaimportowano do n8n'+(id?(" (id "+id+') — <a href="'+base+"/workflow/"+id+'" target="_blank" style="color:#E8B04B">otwórz</a>'):"")+'.</span>';if(typeof toast==="function")toast("Workflow w n8n","Deploy","ok");}
+      else{out.innerHTML='<span style="color:#ff8a8a">n8n odrzucił: '+((j&&j.message)||r.status)+'</span>';}
+    }catch(e){
+      out.innerHTML='<div style="color:#ffcf7a">Przeglądarka nie mogła połączyć się z n8n (najczęściej CORS lub brak HTTPS). Pobierz JSON i zaimportuj ręcznie: n8n → Workflows → Import from File.</div>';
+      var d=el("button","btn");d.textContent="Pobierz workflow (JSON)";d.style.marginTop="6px";d.onclick=function(){download("nexion_"+files.slug+"_workflow.json",files.workflow,"application/json");};out.appendChild(d);
+    }
+  };
+  box.querySelector("#nxSbSql").onclick=function(){
+    try{navigator.clipboard&&navigator.clipboard.writeText(files.sql);}catch(e){}
+    window.open("https://supabase.com/dashboard/project/_/sql/new","_blank");
+    box.querySelector("#nxSbOut").innerHTML='<span style="color:#7fe0a8">SQL skopiowany. Wklej w SQL Editor i uruchom.</span>';
+  };
+  box.querySelector("#nxSbEdge").onclick=function(){
+    var cmd="supabase functions new nexion_"+files.slug+"\n# wklej edge_function.ts, potem:\nsupabase functions deploy nexion_"+files.slug;
+    try{navigator.clipboard&&navigator.clipboard.writeText(cmd);}catch(e){}
+    box.querySelector("#nxSbOut").innerHTML='<span style="color:#7fe0a8">Komenda skopiowana do schowka.</span>';
+  };
+}
 function nxWorkflow(apis,goal){const nodes=[],conn={};let x=260;const add=(name,type,params,tv)=>{nodes.push({parameters:params||{},id:"nx"+nodes.length,name:name,type:type,typeVersion:tv||1,position:[x,300]});x+=220;return name;};
  const trg=add("Start","n8n-nodes-base.manualTrigger",{},1);let prev=trg;
  apis.forEach((a,i)=>{const nm=(a.n.split(" ")[0]||("API"+i))+" "+(i+1);add(nm,"n8n-nodes-base.httpRequest",{url:a.url||"https://api.example.com",method:a.wh?"POST":"GET",options:{}},4);conn[prev]={main:[[{node:nm,type:"main",index:0}]]};prev=nm;});
@@ -1243,12 +1328,13 @@ function renderCopilot(sec){
    '<div class="panel edge"><h3>✔ Parametry projektu</h3><div class="statline"><div class="s"><div class="n">'+days+' dni</div><div class="l">czas wdrożenia</div></div><div class="s"><div class="n">'+pln(cost.min)+'–'+pln(cost.max)+'</div><div class="l">koszt/mc (EST.)</div></div><div class="s"><div class="n">'+risk+'</div><div class="l">ryzyko</div></div><div class="s"><div class="n">'+roi+'/100</div><div class="l">potencjał ROI</div></div></div><div class="small mut" style="margin-top:8px">Skalowalność: '+(apis.filter(a=>a.prt<=2).length>=3?'wysoka':'średnia')+' · Baza: Supabase · Orkiestracja: n8n</div></div>';
   const arch=el("div","panel edge");arch.style.marginTop="12px";arch.innerHTML='<h3>✔ Architektura</h3><div class="small" style="margin-top:6px;line-height:1.9">Źródła danych → <b>'+apis.slice(0,3).map(a=>a.n.split(" ")[0]).join(" / ")+'</b> → <b>n8n</b> (orkiestracja) → <b>Supabase</b> (baza + Edge Functions) → <b>AI</b> (analiza/generacja) → <b>Dashboard / CRM</b> → <b>Alerty</b> → Klient</div>';out.appendChild(arch);
   const keysP=el("div","panel edge");keysP.style.marginTop="12px";keysP.innerHTML='<h3>✔ Wymagane klucze API</h3>'+(keys.length?'<ul style="margin:8px 0 0 18px">'+keys.map(a=>'<li>'+a.n+' <span class="mut small">('+(a.pm||"klucz API")+')</span></li>').join("")+'</ul>':'<div class="small mut" style="margin-top:6px">Wszystkie wybrane API mają plan darmowy — klucze opcjonalne na start.</div>');out.appendChild(keysP);
-  const dl=el("div","panel edge");dl.style.marginTop="12px";dl.innerHTML='<h3>✔ Gotowe pliki do pobrania</h3><div class="small mut" style="margin:6px 0 10px">Zaimportuj bez ręcznej edycji.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" id="nxDlWf">Pobierz workflow n8n (JSON)</button><button class="btn" id="nxDlSql">Pobierz schemat bazy (SQL)</button><button class="btn" id="nxDlEdge">Pobierz Edge Function (TS)</button> <button class="btn gold" id="nxDlSave">💾 Zapisz w chmurze</button></div>';out.appendChild(dl);
+  const dl=el("div","panel edge");dl.style.marginTop="12px";dl.innerHTML='<h3>✔ Gotowe pliki do pobrania</h3><div class="small mut" style="margin:6px 0 10px">Zaimportuj bez ręcznej edycji.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" id="nxDlWf">Pobierz workflow n8n (JSON)</button><button class="btn" id="nxDlSql">Pobierz schemat bazy (SQL)</button><button class="btn" id="nxDlEdge">Pobierz Edge Function (TS)</button> <button class="btn gold" id="nxDlSave">💾 Zapisz w chmurze</button> <button class="btn" id="nxDlDeploy">🚀 Wdroż jednym kliknięciem</button></div>';out.appendChild(dl);
   const sl=nxSlug(goal.name);
   dl.querySelector("#nxDlWf").onclick=()=>download("nexion_"+sl+"_workflow.json",wf,"application/json");
   dl.querySelector("#nxDlSql").onclick=()=>download("nexion_"+sl+"_schema.sql",sql,"text/plain");
   dl.querySelector("#nxDlEdge").onclick=()=>download("nexion_"+sl+"_edge.ts",edge,"text/plain");
   dl.querySelector("#nxDlSave").onclick=function(){nxSaveProject(goal.name,"copilot",{goal:goal.name,apis:apis.map(function(a){return a.n;}),days:days,workflow:wf,sql:sql});};
+  dl.querySelector("#nxDlDeploy").onclick=function(){nxDeployPanel(out,{slug:sl,name:goal.name,workflow:wf,sql:sql,edge:edge});};
   if(typeof toast==="function")toast("Projekt gotowy: "+goal.name,"AI Copilot","ok");
   out.scrollIntoView&&out.scrollIntoView({behavior:"smooth",block:"start"});
  };
@@ -1464,11 +1550,12 @@ function renderBuilder(sec){
   out2.appendChild(P("Technologia i workflow",'<div class="small mut" style="margin-bottom:8px">Dobrane API: '+apis.map(function(a){return a.n;}).join(", ")+'. Baza: Supabase · Orkiestracja: n8n · CRM + Dashboard w komplecie.</div><button class="btn gold" id="nxBbWf">Pobierz workflow n8n (JSON)</button> <button class="btn" id="nxBbSql">Pobierz bazę (SQL)</button>'));
   out2.appendChild(P("Umowa (szkielet)",'<div class="small mut">'+b.umowa+'</div>'));
   out2.appendChild(P("Harmonogram wdrożenia",b.harmonogram.map(function(h2){return '<div style="border-top:1px solid var(--line,#1b4b46);padding:6px 0"><b>'+h2[0]+'</b> <span class="mut small">— '+h2[1]+'</span></div>';}).join("")));
-  var dlall=el("div","panel edge");dlall.style.marginTop="12px";dlall.innerHTML='<button class="btn gold" id="nxBbAll" style="font-weight:800">Pobierz cały plan (TXT)</button> <button class="btn" id="nxBbSave" style="font-weight:800">💾 Zapisz w chmurze</button>';out2.appendChild(dlall);
+  var dlall=el("div","panel edge");dlall.style.marginTop="12px";dlall.innerHTML='<button class="btn gold" id="nxBbAll" style="font-weight:800">Pobierz cały plan (TXT)</button> <button class="btn" id="nxBbSave" style="font-weight:800">💾 Zapisz w chmurze</button> <button class="btn" id="nxBbDeploy" style="font-weight:800">🚀 Wdroż jednym kliknięciem</button>';out2.appendChild(dlall);
   var sl=nxSlug(idea);
   out2.querySelector("#nxBbWf").onclick=function(){download("nexion_"+sl+"_workflow.json",nxWorkflow(apis,goal),"application/json");};
   out2.querySelector("#nxBbSql").onclick=function(){download("nexion_"+sl+"_schema.sql",nxSql(apis,goal),"text/plain");};
   dlall.querySelector("#nxBbSave").onclick=function(){nxSaveProject(idea,"builder",{goal:idea,apis:apis.map(function(a){return a.n;}),workflow:nxWorkflow(apis,goal),sql:nxSql(apis,goal)});};
+  dlall.querySelector("#nxBbDeploy").onclick=function(){nxDeployPanel(out2,{slug:sl,name:idea,workflow:nxWorkflow(apis,goal),sql:nxSql(apis,goal),edge:nxEdge(apis,goal)});};
   dlall.querySelector("#nxBbAll").onclick=function(){var txt="PLAN BIZNESOWY — "+idea+"\n\nMODEL:\n- "+b.model.join("\n- ")+"\n\nPERSONY:\n- "+b.persony.map(function(p){return p.t+": "+p.d;}).join("\n- ")+"\n\nLANDING:\n"+b.landing.h+"\n"+b.landing.sub+"\n- "+b.landing.secs.join("\n- ")+"\n\nSEO:\n- "+b.seo.join("\n- ")+"\n\nADS:\n- "+b.ads.join("\n- ")+"\n\nCOLD MAIL:\n"+b.cold+"\n\nSOCIAL:\n- "+b.social.join("\n- ")+"\n\nOFERTY:\n- "+b.oferty.map(function(o){return o.n+" "+o.p+" — "+o.z;}).join("\n- ")+"\n\nUMOWA:\n"+b.umowa+"\n\nHARMONOGRAM:\n- "+b.harmonogram.map(function(x){return x[0]+": "+x[1];}).join("\n- ")+"\n";download("nexion_"+sl+"_plan_biznesowy.txt",txt,"text/plain");};
   if(typeof toast==="function")toast("Biznes gotowy: "+idea,"AI Business Builder","ok");out2.scrollIntoView&&out2.scrollIntoView({behavior:"smooth",block:"start"});
  };
