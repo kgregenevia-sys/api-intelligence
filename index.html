@@ -528,8 +528,22 @@ body.reduce .nx-core .ring,body.reduce .nx-core .orb,body.reduce .nx-prog i{anim
 }
 @media(min-width:901px){#nx-tabs{display:none}}
 </style>
+<style id="nx-intro-css">
+#nx-intro{position:fixed;inset:0;z-index:2147483647;background:radial-gradient(circle at 50% 44%,#0b1220,#05070e 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+#nx-intro.gone{opacity:0;pointer-events:none;transition:opacity .6s ease}
+#nx-intro .flare{position:absolute;width:60vmin;height:60vmin;border-radius:50%;background:radial-gradient(circle,rgba(232,176,75,.55),rgba(232,176,75,0) 60%);opacity:0;animation:nxFlare 3.1s ease-out forwards}
+#nx-intro svg{width:38vmin;max-width:170px;height:auto;filter:drop-shadow(0 0 20px rgba(232,176,75,.6))}
+#nx-intro .nxpath{stroke-dasharray:560;stroke-dashoffset:560;animation:nxDraw 1.25s .35s cubic-bezier(.6,0,.2,1) forwards}
+#nx-intro .wm{margin-top:20px;font-family:system-ui,Segoe UI,sans-serif;font-weight:900;font-size:clamp(26px,8vmin,40px);letter-spacing:.55em;text-indent:.55em;color:#F6D488;opacity:0;transform:scale(1.15);animation:nxWord 1s 1.85s cubic-bezier(.2,.8,.2,1) forwards;text-shadow:0 0 24px rgba(232,176,75,.4)}
+#nx-intro .sub{margin-top:10px;font-family:system-ui,sans-serif;font-size:11px;letter-spacing:.42em;color:#8a97b1;opacity:0;animation:nxSub .8s 2.35s ease forwards}
+#nx-intro .skip{position:absolute;bottom:26px;font-family:system-ui,sans-serif;font-size:12px;letter-spacing:.1em;color:#5b6b86;opacity:0;animation:nxSub .6s 2.6s ease forwards}
+@keyframes nxDraw{to{stroke-dashoffset:0}}
+@keyframes nxFlare{0%,42%{opacity:0;transform:scale(.35)}64%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.7)}}
+@keyframes nxWord{0%{opacity:0;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@keyframes nxSub{to{opacity:1}}
+</style>
 </head>
-<body>
+<body><div id="nx-intro"><div class="flare"></div><svg viewBox="0 0 120 120" fill="none"><path class="nxpath" d="M30 92V28L90 92V28" stroke="url(#nxg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="nxg" x1="30" y1="28" x2="90" y2="92"><stop stop-color="#F8DE9B"/><stop offset="1" stop-color="#E8B04B"/></linearGradient></defs></svg><div class="wm">NEXION</div><div class="sub">AI BUSINESS INTELLIGENCE</div><div class="skip">dotknij, aby pominąć</div></div>
 <script>try{var _t=localStorage.getItem('nexion.theme');if(_t===null||_t==='goldlight'||_t==='gold')_t='arctic';if(_t){document.documentElement.setAttribute('data-theme',_t);if(_t==='arctic')document.documentElement.setAttribute('data-light','1');}}catch(e){}</script>
 <div id="aurora"></div><div id="nx-sweep"></div><div id="grain"></div>
 <div id="loader"><div class="nx-splash">
@@ -718,7 +732,7 @@ const MODULES=[
  {id:"arch",label:"Architektura",render:renderArch},
  {id:"reco",label:"Rekomendacje",render:renderReco},
  {id:"money",label:"Monetyzacja",render:renderMoney},
- {id:"stripe",label:"Stripe",render:renderStripe},
+ {id:"stripe",label:"Ceny usług",render:renderStripe},
  {id:"road",label:"Roadmapa",render:renderRoad},
  {id:"set",label:"Ustawienia",render:renderSettings}
 ];
@@ -770,6 +784,9 @@ function renderOverview(sec){
  const topCost=[...API_DATA].sort((a,b)=>b.sc-a.sc).slice(0,10).reduce((s,a)=>s+(a.ttdD<90?a.ttdD:5)*DAY_RATE,0);
  const revPot=Math.round(base.arr*1.6); // szeroki potencjał rynku ESTYMACJA
  mhead(sec,"Executive Overview","Stan portfela API i potencjał monetyzacji","zaktualizowano na żywo");
+ const _hero=el("div","panel edge");_hero.style.cssText="margin:0 0 14px;background:linear-gradient(135deg,rgba(232,176,75,.12),rgba(255,255,255,.02));border-color:rgba(232,176,75,.35)";
+ _hero.innerHTML=`<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#E8B04B;font-weight:700;margin-bottom:6px">Co to jest NEXION</div><div style="font-size:19px;font-weight:800;line-height:1.3;margin-bottom:8px">Twoje centrum dowodzenia AI — jeden ekran, który pokazuje najlepsze okazje i podpowiada następny ruch.</div><div class="mut" style="font-size:14px;line-height:1.55">NEXION analizuje ${API_DATA.length} API i rynków, ocenia ich potencjał, prognozuje przychód i buduje gotowe automatyzacje n8n. Zamiast dziesięciu narzędzi masz jedno miejsce, które oszczędza czas i pokazuje, gdzie są pieniądze.</div>`;
+ sec.appendChild(_hero);
  const kpis=[
   ["Wszystkie API",total,"+12 vs poprzednia analiza","up","#5b8cff"],
   ["Kategorie",cats,"pełne pokrycie","nu","#37d3c0"],
@@ -1036,6 +1053,10 @@ function renderStripe(sec){
  const proSave=PLANS[1].m*12-PLANS[1].y;
  extra.innerHTML=`<div class="panel edge"><h3>Kalkulator oszczędności</h3><p class="mut small" style="margin:6px 0">Plan Professional rocznie zamiast miesięcznie:</p><div class="statline"><div class="s"><div class="n">${pln(proSave)}</div><div class="l">oszczędność / rok</div></div><div class="s"><div class="n">17%</div><div class="l">rabat roczny</div></div></div><button class="btn" onclick="openForm('consult')">Umów konsultację Enterprise</button></div>
  <div class="panel edge"><h3>Faktury i historia płatności</h3><div id="invoices" class="small mut" style="margin-top:8px">Brak płatności. Historia pojawi się po pierwszej płatności.</div></div>`;
+ const _pc=el("div","panel edge");_pc.style.marginTop="16px";
+ _pc.innerHTML=`<h3>Konfiguracja cen i płatności</h3><div class="small mut" style="margin:6px 0">Ustaw cenę i link płatności dla każdego wariantu. Puste pole = plan nieaktywny.</div>${Object.keys(STRIPE_CONFIG).map(k=>`<div class="fld-in" style="margin-top:8px"><label>${({starterMonthly:'Starter — miesięcznie',starterYearly:'Starter — rocznie',professionalMonthly:'Professional — miesięcznie',professionalYearly:'Professional — rocznie',enterpriseMonthly:'Enterprise — miesięcznie',enterpriseYearly:'Enterprise — rocznie'})[k]||k}</label><input data-sk="${k}" value="${getStripe()[k]||''}" placeholder="Link do płatności"></div>`).join("")}<button class="btn gold" id="saveStripe2" style="margin-top:12px">Zapisz ceny</button>`;
+ sec.appendChild(_pc);
+ _pc.querySelector("#saveStripe2").onclick=()=>{const o={};_pc.querySelectorAll("[data-sk]").forEach(i=>o[i.dataset.sk]=i.value.trim());localStorage.setItem("apiIntel.stripe",JSON.stringify(o));toast("Zapisano ceny.","Zapisano","ok");};
 }
 function renderPlans(host,cfg){
  host.innerHTML="";
@@ -1099,6 +1120,7 @@ function roadmapPrint(rm){const w=window.open("","_blank");if(!w){toast("Zezwól
 .plans .plan .btn{border-radius:12px!important;padding:14px!important;font-weight:800!important;margin-top:6px}
 .plans .plan .btn.gold{background:linear-gradient(120deg,#E8B04B,#F6D488)!important;color:#20180a!important;border:none!important;box-shadow:0 10px 24px rgba(232,176,75,.3)}
 </style>
+<script>(function(){var el=document.getElementById('nx-intro');if(!el)return;var kill=function(){if(!el)return;el.classList.add('gone');setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);el=null;},650);};var t=setTimeout(kill,3100);el.addEventListener('click',function(){clearTimeout(t);kill();});})();</script>
 </body></html>`);w.document.close();}
 
 /* ============ AI OPPORTUNITY SCORE ============ */
@@ -1157,18 +1179,14 @@ function exportLeads(fmt){const leads=getLeads();if(!leads.length){toast("Brak z
 function getSettings(){try{return JSON.parse(localStorage.getItem("apiIntel.settings"))||{}}catch(e){return{}}}
 function saveSettings(s){localStorage.setItem("apiIntel.settings",JSON.stringify(s));}
 function renderSettings(sec){
- mhead(sec,"Ustawienia","Cennik, integracje i wygląd","lokalnie");
+ mhead(sec,"Ustawienia","Integracje, wygląd i dane","lokalnie");
  const cfg=getStripe(),s=getSettings();
  const g=el("div","grid g2");sec.appendChild(g);
- g.innerHTML=`<div class="panel edge"><h3>Cena usługi</h3><div class="small mut" style="margin:6px 0">Ustaw cenę i link płatności dla każdego wariantu. Puste pole = plan nieaktywny.</div>
-  ${Object.keys(STRIPE_CONFIG).map(k=>`<div class="fld-in" style="margin-top:8px"><label>${({starterMonthly:'Starter — miesięcznie',starterYearly:'Starter — rocznie',professionalMonthly:'Professional — miesięcznie',professionalYearly:'Professional — rocznie',enterpriseMonthly:'Enterprise — miesięcznie',enterpriseYearly:'Enterprise — rocznie'})[k]||k}</label><input data-sk="${k}" value="${cfg[k]||""}" placeholder="Link do płatności"></div>`).join("")}
-  <button class="btn gold" style="margin-top:12px" id="saveStripe">Zapisz linki Stripe</button></div>
-  <div class="panel edge"><h3>Integracje i wygląd</h3>
+ g.innerHTML=`<div class="panel edge"><h3>Integracje i wygląd</h3>
    <div class="fld-in" style="margin-top:8px"><label>Webhook n8n / Supabase (dla formularzy)</label><input id="setHook" value="${s.webhook||""}" placeholder="https://…/webhook/leads"></div>
    <label style="display:flex;align-items:center;gap:8px;margin-top:14px"><input type="checkbox" id="setReduce" ${document.body.classList.contains("reduce")?"checked":""}> Ogranicz animacje (reduced motion)</label>
    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="setSave">Zapisz ustawienia</button><button class="btn" onclick="exportLeads('json')">Eksport zgłoszeń</button><button class="btn ghost" id="setClear">Wyczyść dane lokalne</button></div>
    <div class="small mut" style="margin-top:10px">Zgłoszenia w bazie: <b id="leadCount">${getLeads().length}</b></div></div>`;
- $("#saveStripe").onclick=()=>{const o={};$$("#mod-set [data-sk]").forEach(i=>o[i.dataset.sk]=i.value.trim());localStorage.setItem("apiIntel.stripe",JSON.stringify(o));toast("Zapisano linki Stripe. Odśwież moduł Stripe.","Zapisano","ok");};
  $("#setSave").onclick=()=>{const st=getSettings();st.webhook=$("#setHook").value.trim();st.reduce=$("#setReduce").checked;saveSettings(st);document.body.classList.toggle("reduce",st.reduce);toast("Ustawienia zapisane","Zapisano","ok");};
  $("#setReduce").onchange=e=>{document.body.classList.toggle("reduce",e.target.checked);};
  $("#setClear").onclick=()=>{if(confirm("Wyczyścić filtry, zgłoszenia i konfigurację Stripe z tej przeglądarki?")){["apiIntel.filters.v2","apiIntel.leads","apiIntel.stripe","apiIntel.settings"].forEach(k=>localStorage.removeItem(k));toast("Wyczyszczono dane lokalne","Reset","warn");}};
