@@ -1408,5 +1408,56 @@ window.__COMBOS__ = [
 {t:"16 · Content factory z realnych danych",apis:["EU TED (Tenders)","Claude","ElevenLabs","DataForSEO","Resend"],d:"Zweryfikowane zdarzenia → artykuły/newslettery/audio zoptymalizowane pod SEO, z atrybucją źródła.",arch:"Event → AI artykuł → SEO check → audio → newsletter + publikacja",rev:"Napędza pozyskanie do wszystkich pionów; obniża CAC."}
 ];
 </script>
+<script>
+/* ===== API Intelligence Copilot (P1) — pływający czat AI ===== */
+(function(){
+  var EP="https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/apiintel-copilot";
+  var hist=[], open=false, busy=false;
+  var css=document.createElement("style");
+  css.textContent=""
+   +"#cpBtn{position:fixed;right:20px;bottom:20px;z-index:9998;border:0;cursor:pointer;border-radius:999px;padding:12px 18px;font:600 14px/1 -apple-system,Segoe UI,Roboto,sans-serif;color:#1a1400;background:linear-gradient(135deg,#f4dd94,#d9b45a);box-shadow:0 10px 30px -8px rgba(217,180,90,.6)}"
+   +"#cpPanel{position:fixed;right:20px;bottom:76px;z-index:9999;width:min(380px,calc(100vw - 40px));max-height:72vh;display:none;flex-direction:column;background:#0b1120;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;box-shadow:0 24px 60px -12px rgba(0,0,0,.7)}"
+   +"#cpPanel.on{display:flex}"
+   +"#cpHead{padding:12px 14px;font:650 14px/1.2 -apple-system,Segoe UI,Roboto,sans-serif;color:#eef2fb;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:8px}"
+   +"#cpHead .dot{width:8px;height:8px;border-radius:50%;background:#3fce78}"
+   +"#cpHead button{margin-left:auto;background:transparent;border:0;color:#93a1bd;font-size:18px;cursor:pointer;line-height:1}"
+   +"#cpMsgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}"
+   +".cpM{font:13.5px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:9px 12px;border-radius:12px;max-width:88%;white-space:pre-wrap;word-wrap:break-word}"
+   +".cpM.u{align-self:flex-end;background:#1d4ed8;color:#fff;border-bottom-right-radius:4px}"
+   +".cpM.a{align-self:flex-start;background:rgba(255,255,255,.06);color:#eef2fb;border:1px solid rgba(255,255,255,.08);border-bottom-left-radius:4px}"
+   +".cpM.sys{align-self:center;color:#93a1bd;font-size:12px;background:transparent;text-align:center}"
+   +"#cpIn{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,.08)}"
+   +"#cpTa{flex:1;resize:none;background:#04060c;color:#eef2fb;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px 10px;font:13.5px/1.4 -apple-system,Segoe UI,Roboto,sans-serif;max-height:120px}"
+   +"#cpSend{border:0;border-radius:10px;padding:0 14px;cursor:pointer;font-weight:650;color:#1a1400;background:linear-gradient(135deg,#f4dd94,#d9b45a)}"
+   +"#cpSend:disabled{opacity:.5;cursor:default}";
+  document.head.appendChild(css);
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+  var btn=document.createElement("button");btn.id="cpBtn";btn.innerHTML="✨ Copilot";document.body.appendChild(btn);
+  var panel=document.createElement("div");panel.id="cpPanel";
+  panel.innerHTML='<div id="cpHead"><span class="dot"></span> AI Copilot <button id="cpX" aria-label="Zamknij">×</button></div>'
+   +'<div id="cpMsgs"></div>'
+   +'<div id="cpIn"><textarea id="cpTa" rows="1" placeholder="Zapytaj o API, model biznesowy, koszt wdrożenia…"></textarea><button id="cpSend">Wyślij</button></div>';
+  document.body.appendChild(panel);
+  var msgs=panel.querySelector("#cpMsgs"), ta=panel.querySelector("#cpTa"), send=panel.querySelector("#cpSend");
+  function add(cls,txt){var d=document.createElement("div");d.className="cpM "+cls;d.innerHTML=esc(txt);msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return d;}
+  function ctx(){ try{ if(typeof API_DATA==="undefined"||!API_DATA.length) return ""; return API_DATA.slice().sort(function(a,b){return (b.sc||0)-(a.sc||0);}).slice(0,90).map(function(a){return a.n+" ["+(typeof catName==="function"?catName(a.c):a.c)+" "+(a.sc||"")+"]";}).join("; "); }catch(e){return "";} }
+  function toggle(o){open=(o!=null?o:!open);panel.classList.toggle("on",open);if(open){if(!msgs.children.length)add("sys","Cześć! Jestem Copilotem API Intelligence. Zapytaj mnie o dobór API, model abonamentu, koszt MVP albo integracje n8n.");ta.focus();}}
+  btn.onclick=function(){toggle();};
+  panel.querySelector("#cpX").onclick=function(){toggle(false);};
+  ta.addEventListener("input",function(){ta.style.height="auto";ta.style.height=Math.min(ta.scrollHeight,120)+"px";});
+  ta.addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();go();}});
+  send.onclick=go;
+  function go(){
+    if(busy)return; var q=ta.value.trim(); if(!q)return;
+    add("u",q); hist.push({role:"user",content:q}); ta.value="";ta.style.height="auto";
+    busy=true;send.disabled=true; var load=add("a","…");
+    fetch(EP,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({question:q,context:ctx(),history:hist.slice(0,-1)})})
+     .then(function(r){return r.json();})
+     .then(function(d){ load.remove(); if(d&&d.ok&&d.answer){add("a",d.answer);hist.push({role:"assistant",content:d.answer});} else {add("sys","Nie udało się uzyskać odpowiedzi ("+((d&&d.error)||"błąd")+"). Spróbuj ponownie.");} })
+     .catch(function(){ load.remove(); add("sys","Brak połączenia z Copilotem. Spróbuj ponownie."); })
+     .finally(function(){ busy=false;send.disabled=false;ta.focus(); if(hist.length>16)hist=hist.slice(-16); });
+  }
+})();
+</script>
 </body>
 </html>
