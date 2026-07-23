@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.kgregenevia.nexion",
+      "sha256_cert_fingerprints": [
+        "86:AD:88:1A:09:92:BC:32:F2:ED:ED:9C:4B:A1:6F:1C:F2:C2:05:EB:28:A2:79:F3:E4:27:11:22:45:8C:8C:39"
+      ]
+    }
+  }
+]

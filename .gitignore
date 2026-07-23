@@ -1,0 +1,39 @@
+# Secrets and environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+key.properties
+service-account*.json
+google-services.json
+
+# Android signing
+*.jks
+*.keystore
+android.keystore
+upload-keystore*
+release-keystore*
+
+# Bubblewrap / Android build
+build/
+dist/
+.gradle/
+.idea/
+local.properties
+*.iml
+node_modules/
+.twa/
+bubblewrap-output/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

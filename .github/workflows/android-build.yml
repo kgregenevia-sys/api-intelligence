@@ -1,0 +1,77 @@
+name: NEXION Android Build (APK + AAB)
+
+# Kontrolowana budowa. NIE publikuje do żadnego sklepu.
+on:
+  workflow_dispatch: {}
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Restore keystore from secret
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "::error::Brak ANDROID_KEYSTORE_BASE64"; exit 1; fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/android.keystore"
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+
+      - name: Build release APK + AAB (unsigned)
+        working-directory: android
+        run: ./gradlew :app:assembleRelease :app:bundleRelease --no-daemon
+
+      - name: Sign APK + AAB
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          BT=$(ls -d $ANDROID_SDK_ROOT/build-tools/*/ | sort -V | tail -1)
+          APK_DIR=android/app/build/outputs/apk/release
+          AAB_DIR=android/app/build/outputs/bundle/release
+          "${BT}apksigner" sign \
+            --ks "$RUNNER_TEMP/android.keystore" --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass "env:KS_PASS" --key-pass "env:KEY_PASS" \
+            --out "$APK_DIR/NEXION-release.apk" "$APK_DIR/app-release-unsigned.apk"
+          "${BT}apksigner" verify --print-certs "$APK_DIR/NEXION-release.apk"
+          cp "$AAB_DIR/app-release.aab" "$AAB_DIR/NEXION-release.aab"
+          jarsigner -keystore "$RUNNER_TEMP/android.keystore" \
+            -storepass:env KS_PASS -keypass:env KEY_PASS \
+            -sigalg SHA256withRSA -digestalg SHA-256 \
+            "$AAB_DIR/NEXION-release.aab" "$KEY_ALIAS"
+          jarsigner -verify "$AAB_DIR/NEXION-release.aab"
+
+      - name: Checksums
+        run: |
+          find android/app/build/outputs -name 'NEXION-release.*' -exec sha256sum {} \;
+
+      - name: Upload artifacts (NO store deploy)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexion-android-${{ github.sha }}
+          path: |
+            android/app/build/outputs/apk/release/NEXION-release.apk
+            android/app/build/outputs/bundle/release/NEXION-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      # BRAK kroków deploy do Google Play / Samsung / Microsoft Store.
+      # Publikacja wyłącznie ręcznie, po decyzji właściciela.
