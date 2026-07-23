@@ -725,7 +725,7 @@ const IC={
  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L16.5 3h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5c.1-.3.1-.7.1-1z"/></svg>'
 };
 const MODULES=[
- {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},{id:"aiarch",label:"AI Architekt",render:renderAIArch},{id:"roi",label:"ROI Analyzer",render:renderROI},{id:"audit",label:"Agent Audytu",render:renderAudit},{id:"library",label:"Biblioteka projektów",render:renderLibrary},
+ {id:"over",label:"Overview",render:renderOverview},{id:"copilot",label:"AI Copilot",render:renderCopilot},{id:"aiarch",label:"AI Architekt",render:renderAIArch},{id:"roi",label:"ROI Analyzer",render:renderROI},{id:"audit",label:"Agent Audytu",render:renderAudit},{id:"library",label:"Biblioteka projektów",render:renderLibrary},{id:"market",label:"Marketplace",render:renderMarket},{id:"builder",label:"AI Business Builder",render:renderBuilder},
  {id:"rank",label:"Ranking API",render:renderRanking,num:()=>API_DATA.length},
  {id:"deep",label:"TOP 30",render:renderDeep,num:()=>Object.keys(DEEP).length},
  {id:"combos",label:"Kombinacje API",render:renderCombos,num:()=>COMBOS.length},
@@ -1399,6 +1399,80 @@ function renderLibrary(sec){
  draw();
 }
 /* ===================== /MODUŁ 8 ===================== */
+
+/* ===================== NEXION 2.0 · MODUŁ 5: MARKETPLACE ===================== */
+var NX_MKT_CATS=["Workflow n8n","Edge Functions","Prompt Packs","API Connectors","Dashboardy","AI Agents","CRM","Marketing","Sprzedaż","Finanse"];
+var NX_MKT=null;
+function nxBuildMarket(){if(NX_MKT)return NX_MKT;var auth=["NEXION Labs","AutoFlow","DataForge","GrowthKit","CloudNine","BotWorks","PixelStack"];var suf=["Starter","Pro","Toolkit","Bundle","Blueprint","Engine","Suite","Automations"];var prices=[0,49,99,149,199,299];var out=[];NX_MKT_CATS.forEach(function(cat,ci){for(var i=0;i<8;i++){var idx=ci*8+i;var rating=(40+((i*7+ci*3)%11))/10;var dl=60+((i*137+ci*971)%4900);var price=prices[(i+ci)%prices.length];out.push({id:idx,name:cat+" "+suf[i%suf.length],cat:cat,desc:"Gotowy pakiet „"+cat+"” — zainstaluj i używaj od ręki. Zawiera pliki, konfigurację i instrukcję. Sprawdzone w realnych wdrożeniach.",rating:rating,dl:dl,author:auth[idx%auth.length],price:price});}});NX_MKT=out;return out;}
+function nxStars(r){var full=Math.round(r);var s="";for(var i=0;i<5;i++)s+=(i<full?"★":"☆");return s;}
+function renderMarket(sec){
+ mhead(sec,"Marketplace","Sklep z gotowymi rozwiązaniami — workflow, Edge Functions, prompty, agenci AI i więcej","sklep");
+ var m=nxBuildMarket();
+ var bar=el("div","panel edge");bar.style.marginBottom="12px";
+ var cats=["Wszystkie"].concat(NX_MKT_CATS);
+ bar.innerHTML='<input id="nxMkQ" placeholder="Szukaj produktu…" style="width:100%;background:var(--bg2,#0b2b28);border:1px solid var(--line,#1b4b46);color:var(--txt,#fff);border-radius:10px;padding:11px 14px;font-size:15px;outline:none"><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">'+cats.map(function(c){return '<button class="btn" data-mc="'+c+'" style="padding:5px 11px;font-size:12px">'+c+'</button>';}).join("")+'</div><div class="small mut" style="margin-top:8px">'+m.length+' produktów w sklepie</div>';
+ sec.appendChild(bar);var grid=el("div","grid g2");sec.appendChild(grid);var det=el("div");det.id="nxMkDet";det.style.marginTop="12px";sec.appendChild(det);
+ var st={q:"",c:"Wszystkie",lim:24};
+ var open=function(p){det.innerHTML="";var d=el("div","panel edge hl");var scr='<div style="display:flex;gap:8px;margin:10px 0">'+[0,1,2].map(function(k){var g=["#12203c,#0a1120","#1a2c52,#0d1a38","#0f3a36,#08211f"][k];return '<div style="flex:1;height:70px;border-radius:10px;background:linear-gradient(135deg,'+g+');border:1px solid var(--line,#1b4b46);display:flex;align-items:center;justify-content:center;color:var(--mut,#8a97b1);font-size:11px">screen '+(k+1)+'</div>';}).join("")+'</div>';
+  d.innerHTML='<h2 style="margin:0">'+p.name+'</h2><div class="mut small" style="margin:4px 0">'+p.cat+' · autor: '+p.author+'</div>'+scr+'<div style="color:var(--gold,#E8B04B);font-size:15px">'+nxStars(p.rating)+' <span class="mut small">'+p.rating.toFixed(1)+' · '+p.dl.toLocaleString("pl-PL")+' pobrań</span></div><p class="mut" style="font-size:13.5px;margin:10px 0">'+p.desc+'</p><div style="display:flex;align-items:center;gap:12px;margin-top:8px"><div style="font-size:26px;font-weight:900">'+(p.price?p.price+" zł":"Za darmo")+'</div><button class="btn gold" id="nxMkBuy">'+(p.price?"Kup i pobierz":"Pobierz")+'</button></div>';
+  det.appendChild(d);d.querySelector("#nxMkBuy").onclick=function(){if(typeof toast==="function")toast(p.price?"Przejście do płatności za: "+p.name:"Pobieranie: "+p.name,"Marketplace","ok");};det.scrollIntoView&&det.scrollIntoView({behavior:"smooth",block:"start"});};
+ var draw=function(){grid.innerHTML="";var q=st.q.toLowerCase();var f=m.filter(function(p){return (st.c==="Wszystkie"||p.cat===st.c)&&(!q||p.name.toLowerCase().indexOf(q)>=0||p.cat.toLowerCase().indexOf(q)>=0);});var show=f.slice(0,st.lim);
+  show.forEach(function(p){var c=el("div","panel edge");c.style.cursor="pointer";c.innerHTML='<div style="font-weight:800;font-size:14px">'+p.name+'</div><div class="mut small" style="margin:2px 0 6px">'+p.cat+'</div><div style="color:var(--gold,#E8B04B);font-size:12px">'+nxStars(p.rating)+' <span class="mut">'+p.rating.toFixed(1)+' · '+p.dl.toLocaleString("pl-PL")+'↓</span></div><div style="font-weight:800;margin-top:6px">'+(p.price?p.price+" zł":"Za darmo")+'</div>';c.onclick=function(){open(p);};grid.appendChild(c);});
+  if(f.length>show.length){var more=el("div");more.style.gridColumn="1/-1";more.innerHTML='<button class="btn" id="nxMkMore" style="width:100%">Pokaż więcej ('+(f.length-show.length)+')</button>';grid.appendChild(more);more.querySelector("#nxMkMore").onclick=function(){st.lim+=24;draw();};}
+  if(!f.length)grid.innerHTML='<div class="small mut">Brak produktów.</div>';};
+ bar.querySelector("#nxMkQ").addEventListener("input",function(e){st.q=e.target.value;st.lim=24;draw();});
+ bar.querySelectorAll("[data-mc]").forEach(function(b){b.onclick=function(){st.c=b.dataset.mc;st.lim=24;bar.querySelectorAll("[data-mc]").forEach(function(x){x.classList.toggle("gold",x.dataset.mc===st.c);});draw();};});
+ draw();
+}
+/* ===================== /MODUŁ 5 ===================== */
+
+/* ===================== NEXION 2.0 · MODUŁ 10: AI BUSINESS BUILDER ===================== */
+function nxBiz(idea,goal,apis){
+ var n=goal.name.replace(/^.*: /,"");var days=apis.reduce(function(s,a){return s+(a.ttdD||2);},0);
+ return {
+  model:["Segment klientów: firmy i osoby szukające rozwiązania „"+idea+"”.","Propozycja wartości: oszczędność czasu i pieniędzy dzięki automatyzacji ("+n+").","Kanały: SEO, social media, cold mailing, polecenia.","Przychód: abonament miesięczny + wdrożenia + pakiety premium.","Koszty: API/AI, infrastruktura (Supabase, n8n), marketing.","Przewaga: gotowy zestaw integracji i szybkie wdrożenie ("+days+" dni)."],
+  persony:[{t:"Właściciel małej firmy",d:"chce więcej klientów bez zatrudniania — szuka narzędzia, które zrobi robotę za niego."},{t:"Manager / operacje",d:"chce uporządkować procesy i mieć dane w jednym miejscu, zamiast 10 aplikacji."}],
+  landing:{h:n+" — gotowe w "+days+" dni",sub:"Ustaw raz, a system pracuje za Ciebie: szuka, publikuje, pilnuje i podpowiada.",secs:["Co zyskujesz: mniej klikania, więcej wyników.","Jak działa: 3 kroki — podłącz, ustaw, uruchom.","Dowód: gotowe integracje "+apis.slice(0,3).map(function(a){return a.n;}).join(", ")+"."],cta:"Zamów wdrożenie"},
+  seo:["automatyzacja "+n.toLowerCase(),n.toLowerCase()+" dla firm","jak zautomatyzować "+idea,"narzędzie "+idea,"system "+idea+" cena"],
+  ads:["Nagłówek: „Przestań tracić czas na "+idea+"”","Angle: oszczędność godzin dziennie","Angle: więcej klientów z tego samego ruchu","CTA: Wypróbuj / Umów demo"],
+  cold:"Temat: Szybkie pytanie o "+idea+"\n\nCześć {imię}, pomagamy firmom z branży {branża} zautomatyzować "+idea+" — zwykle oszczędza to kilka godzin dziennie. Otwarty na 15 min rozmowy w tym tygodniu?",
+  social:["Pon: problem, który rozwiązujesz","Śr: case / efekt liczbowo","Pt: kulisy / jak to działa","Nd: oferta + CTA"],
+  oferty:[{n:"Start",p:"149 zł/mc",z:"podstawowa automatyzacja + wsparcie mailowe"},{n:"Pro",p:"349 zł/mc",z:"pełny system + integracje + priorytet"},{n:"Wdrożenie",p:"od 2 500 zł",z:"konfiguracja pod klucz + szkolenie"}],
+  umowa:"UMOWA (szkielet): Strony, Przedmiot (wdrożenie systemu "+n+"), Zakres, Wynagrodzenie i płatności, Termin ("+days+" dni), Poufność, RODO/powierzenie danych, Odpowiedzialność, Rozwiązanie, Postanowienia końcowe. (Do weryfikacji prawnej.)",
+  harmonogram:[["0–30 dni","konfiguracja, integracje "+apis.slice(0,2).map(function(a){return a.n;}).join(" i ")+", pierwszy przepływ"],["31–60 dni","uruchomienie sprzedaży, onboarding klientów, optymalizacja"],["61–90 dni","skalowanie, kolejne kanały, raporty i automatyzacja obsługi"]]
+ };
+}
+function renderBuilder(sec){
+ mhead(sec,"AI Business Builder","Wpisz pomysł — dostajesz kompletny biznes: model, persony, landing, kampanie, tech, harmonogram","kompletny plan");
+ var box=el("div","panel edge");box.style.marginBottom="14px";
+ box.innerHTML='<label class="em" style="font-weight:700;display:block;margin-bottom:6px">Twój pomysł na biznes</label><input id="nxBbGoal" placeholder="np. platforma do wynajmu sprzętu, agencja AI, sklep z…" style="width:100%;background:var(--bg2,#0b2b28);border:1px solid var(--line,#1b4b46);color:var(--txt,#fff);border-radius:10px;padding:12px 14px;font-size:15px;outline:none"><button class="btn gold" id="nxBbGen" style="margin-top:10px;font-weight:800">🚀 ZBUDUJ BIZNES</button>';
+ sec.appendChild(box);var out=el("div");out.id="nxBbOut";sec.appendChild(out);
+ var P=function(title,html){var p=el("div","panel edge");p.style.marginTop="12px";p.innerHTML='<h3 style="margin:0 0 8px">'+title+'</h3>'+html;return p;};
+ var ul=function(arr){return '<ul style="margin:0 0 0 18px">'+arr.map(function(t){return '<li style="padding:3px 0;font-size:13.5px">'+t+'</li>';}).join("")+'</ul>';};
+ var run=function(){
+  var idea=(box.querySelector("#nxBbGoal").value||"").trim()||"nowy biznes";var goal=nxGoal(idea);var apis=nxPick(goal.cats,5);var b=nxBiz(idea,goal,apis);var out2=out;out2.innerHTML="";
+  var h=el("div","panel edge hl");h.innerHTML='<h2 style="margin:0">Biznes: '+idea+'</h2><div class="mut small" style="margin-top:4px">Kompletny plan wygenerowany z bazy 142 API · silnik NEXION</div>';out2.appendChild(h);
+  out2.appendChild(P("Model biznesowy",ul(b.model)));
+  out2.appendChild(P("Persony klientów",b.persony.map(function(p){return '<div style="margin-bottom:6px"><b>'+p.t+'</b> <span class="mut small">— '+p.d+'</span></div>';}).join("")));
+  out2.appendChild(P("Landing page",'<div style="font-size:18px;font-weight:800">'+b.landing.h+'</div><div class="mut" style="margin:4px 0 8px">'+b.landing.sub+'</div>'+ul(b.landing.secs)+'<button class="btn gold" style="margin-top:8px">'+b.landing.cta+'</button>'));
+  out2.appendChild(P("Kampanie — SEO",ul(b.seo)));
+  out2.appendChild(P("Kampanie — reklamy (ADS)",ul(b.ads)));
+  out2.appendChild(P("Cold mailing (szablon)",'<pre style="white-space:pre-wrap;font-size:13px;color:#cfd7e6;margin:0">'+b.cold+'</pre>'));
+  out2.appendChild(P("Social media (tydzień)",ul(b.social)));
+  out2.appendChild(P("Oferty i wyceny",b.oferty.map(function(o){return '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--line,#1b4b46);padding:6px 0"><b>'+o.n+'</b><span>'+o.p+'</span></div><div class="mut small" style="margin-bottom:4px">'+o.z+'</div>';}).join("")));
+  out2.appendChild(P("Technologia i workflow",'<div class="small mut" style="margin-bottom:8px">Dobrane API: '+apis.map(function(a){return a.n;}).join(", ")+'. Baza: Supabase · Orkiestracja: n8n · CRM + Dashboard w komplecie.</div><button class="btn gold" id="nxBbWf">Pobierz workflow n8n (JSON)</button> <button class="btn" id="nxBbSql">Pobierz bazę (SQL)</button>'));
+  out2.appendChild(P("Umowa (szkielet)",'<div class="small mut">'+b.umowa+'</div>'));
+  out2.appendChild(P("Harmonogram wdrożenia",b.harmonogram.map(function(h2){return '<div style="border-top:1px solid var(--line,#1b4b46);padding:6px 0"><b>'+h2[0]+'</b> <span class="mut small">— '+h2[1]+'</span></div>';}).join("")));
+  var dlall=el("div","panel edge");dlall.style.marginTop="12px";dlall.innerHTML='<button class="btn gold" id="nxBbAll" style="font-weight:800">Pobierz cały plan (TXT)</button>';out2.appendChild(dlall);
+  var sl=nxSlug(idea);
+  out2.querySelector("#nxBbWf").onclick=function(){download("nexion_"+sl+"_workflow.json",nxWorkflow(apis,goal),"application/json");};
+  out2.querySelector("#nxBbSql").onclick=function(){download("nexion_"+sl+"_schema.sql",nxSql(apis,goal),"text/plain");};
+  dlall.querySelector("#nxBbAll").onclick=function(){var txt="PLAN BIZNESOWY — "+idea+"\n\nMODEL:\n- "+b.model.join("\n- ")+"\n\nPERSONY:\n- "+b.persony.map(function(p){return p.t+": "+p.d;}).join("\n- ")+"\n\nLANDING:\n"+b.landing.h+"\n"+b.landing.sub+"\n- "+b.landing.secs.join("\n- ")+"\n\nSEO:\n- "+b.seo.join("\n- ")+"\n\nADS:\n- "+b.ads.join("\n- ")+"\n\nCOLD MAIL:\n"+b.cold+"\n\nSOCIAL:\n- "+b.social.join("\n- ")+"\n\nOFERTY:\n- "+b.oferty.map(function(o){return o.n+" "+o.p+" — "+o.z;}).join("\n- ")+"\n\nUMOWA:\n"+b.umowa+"\n\nHARMONOGRAM:\n- "+b.harmonogram.map(function(x){return x[0]+": "+x[1];}).join("\n- ")+"\n";download("nexion_"+sl+"_plan_biznesowy.txt",txt,"text/plain");};
+  if(typeof toast==="function")toast("Biznes gotowy: "+idea,"AI Business Builder","ok");out2.scrollIntoView&&out2.scrollIntoView({behavior:"smooth",block:"start"});
+ };
+ box.querySelector("#nxBbGen").onclick=run;box.querySelector("#nxBbGoal").addEventListener("keydown",function(e){if(e.key==="Enter")run();});
+}
+/* ===================== /MODUŁ 10 ===================== */
 
 function renderSettings(sec){
  mhead(sec,"Ustawienia","Integracje, wygląd i dane","lokalnie");
