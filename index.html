@@ -1300,259 +1300,39 @@ function nxWorkflow(apis,goal){const nodes=[],conn={};let x=260;const add=(name,
  apis.forEach((a,i)=>{const nm=(a.n.split(" ")[0]||("API"+i))+" "+(i+1);add(nm,"n8n-nodes-base.httpRequest",{url:a.url||"https://api.example.com",method:a.wh?"POST":"GET",options:{}},4);conn[prev]={main:[[{node:nm,type:"main",index:0}]]};prev=nm;});
  const store=add("Zapis do Supabase","n8n-nodes-base.httpRequest",{url:"https://YOUR-PROJECT.supabase.co/rest/v1/"+nxSlug(goal.ent[0]||"results"),method:"POST",sendHeaders:true,options:{}},4);conn[prev]={main:[[{node:store,type:"main",index:0}]]};
  return JSON.stringify({name:"NEXION – "+goal.name,nodes:nodes,connections:conn,active:false,settings:{executionOrder:"v1"},pinData:{},meta:{generatedBy:"NEXION AI Copilot"}},null,2);}
-function nxSql(apis, goal){
-  goal = goal || {}; apis = apis || [];
-  var name = goal.name || "Projekt NEXION";
-  var ents = (goal.ent || []).map(nxSlug).filter(Boolean);
-  var L = [];
-  var p = function(x){ L.push(x); };
-
-  p("-- ==========================================================");
-  p("-- NEXION 2.0 — PEŁNY MODEL DANYCH");
-  p("-- Projekt: " + name);
-  p("-- Cel: Supabase / PostgreSQL 15+. Uruchom w SQL Editor.");
-  p("-- Zawiera: 12 tabel rdzenia, RLS, policies, indeksy, FK,");
-  p("--          triggery, widoki, funkcje pomocnicze, komentarze.");
-  p("-- ==========================================================");
-  p("");
-  p("create extension if not exists pgcrypto;");
-  p("");
-  p("-- ---------- FUNKCJE POMOCNICZE ----------");
-  p("create or replace function public.set_updated_at()");
-  p("returns trigger language plpgsql as $$");
-  p("begin new.updated_at = now(); return new; end; $$;");
-  p("comment on function public.set_updated_at() is 'Ustawia updated_at przy UPDATE (trigger BEFORE).';");
-  p("");
-
-  // Definicje tabel rdzenia
-  var tables = [
-    ["users", [
-      "id uuid primary key references auth.users(id) on delete cascade",
-      "org_id uuid",
-      "email text unique not null",
-      "full_name text",
-      "role text not null default 'member' check (role in ('owner','admin','member'))",
-      "created_at timestamptz not null default now()",
-      "updated_at timestamptz not null default now()"
-    ], "Profile użytkowników powiązane z auth.users."],
-    ["organizations", [
-      "id uuid primary key default gen_random_uuid()",
-      "owner_id uuid not null references auth.users(id) on delete cascade",
-      "name text not null",
-      "slug text unique not null",
-      "plan text not null default 'free' check (plan in ('free','starter','professional','enterprise'))",
-      "created_at timestamptz not null default now()",
-      "updated_at timestamptz not null default now()"
-    ], "Organizacje (najemcy) — kontener dla projektów i rozliczeń."],
-    ["projects", [
-      "id uuid primary key default gen_random_uuid()",
-      "org_id uuid not null references public.organizations(id) on delete cascade",
-      "owner_id uuid not null references auth.users(id) on delete cascade",
-      "name text not null",
-      "goal text",
-      "status text not null default 'draft' check (status in ('draft','active','archived'))",
-      "config jsonb not null default '{}'::jsonb",
-      "created_at timestamptz not null default now()",
-      "updated_at timestamptz not null default now()"
-    ], "Projekty automatyzacji NEXION."],
-    ["executions", [
-      "id uuid primary key default gen_random_uuid()",
-      "project_id uuid not null references public.projects(id) on delete cascade",
-      "status text not null default 'pending' check (status in ('pending','running','success','error','canceled'))",
-      "trigger text",
-      "started_at timestamptz not null default now()",
-      "finished_at timestamptz",
-      "duration_ms integer",
-      "result jsonb"
-    ], "Uruchomienia workflow/projektu."],
-    ["logs", [
-      "id bigint generated always as identity primary key",
-      "execution_id uuid references public.executions(id) on delete cascade",
-      "project_id uuid references public.projects(id) on delete cascade",
-      "level text not null default 'info' check (level in ('debug','info','warn','error'))",
-      "message text not null",
-      "context jsonb",
-      "created_at timestamptz not null default now()"
-    ], "Logi wykonań i zdarzeń."],
-    ["subscriptions", [
-      "id uuid primary key default gen_random_uuid()",
-      "org_id uuid not null references public.organizations(id) on delete cascade",
-      "plan text not null check (plan in ('starter','professional','enterprise'))",
-      "status text not null default 'active' check (status in ('trialing','active','past_due','canceled'))",
-      "stripe_customer_id text",
-      "stripe_subscription_id text",
-      "current_period_end timestamptz",
-      "created_at timestamptz not null default now()",
-      "updated_at timestamptz not null default now()"
-    ], "Subskrypcje organizacji (powiązanie ze Stripe)."],
-    ["billing", [
-      "id uuid primary key default gen_random_uuid()",
-      "subscription_id uuid not null references public.subscriptions(id) on delete cascade",
-      "org_id uuid not null references public.organizations(id) on delete cascade",
-      "amount_cents integer not null check (amount_cents >= 0)",
-      "currency text not null default 'pln'",
-      "status text not null default 'paid' check (status in ('draft','open','paid','void','refunded'))",
-      "invoice_url text",
-      "paid_at timestamptz",
-      "created_at timestamptz not null default now()"
-    ], "Faktury/płatności powiązane z subskrypcją."],
-    ["api_keys", [
-      "id uuid primary key default gen_random_uuid()",
-      "org_id uuid not null references public.organizations(id) on delete cascade",
-      "name text not null",
-      "key_hash text not null",
-      "last_four text",
-      "scopes text[] not null default '{}'",
-      "revoked boolean not null default false",
-      "created_at timestamptz not null default now()",
-      "last_used_at timestamptz"
-    ], "Klucze API organizacji (przechowywany wyłącznie hash)."],
-    ["settings", [
-      "org_id uuid primary key references public.organizations(id) on delete cascade",
-      "webhook_url text",
-      "notify_email text",
-      "telegram_chat_id text",
-      "preferences jsonb not null default '{}'::jsonb",
-      "updated_at timestamptz not null default now()"
-    ], "Ustawienia per organizacja."],
-    ["prompts", [
-      "id uuid primary key default gen_random_uuid()",
-      "project_id uuid not null references public.projects(id) on delete cascade",
-      "name text not null",
-      "model text",
-      "content text not null",
-      "version integer not null default 1",
-      "created_at timestamptz not null default now()",
-      "updated_at timestamptz not null default now()"
-    ], "Prompty LLM wersjonowane per projekt."],
-    ["history", [
-      "id bigint generated always as identity primary key",
-      "project_id uuid not null references public.projects(id) on delete cascade",
-      "actor_id uuid references auth.users(id) on delete set null",
-      "action text not null",
-      "snapshot jsonb",
-      "created_at timestamptz not null default now()"
-    ], "Historia zmian projektu."],
-    ["audit", [
-      "id bigint generated always as identity primary key",
-      "actor_id uuid references auth.users(id) on delete set null",
-      "org_id uuid references public.organizations(id) on delete cascade",
-      "entity text not null",
-      "entity_id text",
-      "action text not null",
-      "meta jsonb",
-      "created_at timestamptz not null default now()"
-    ], "Dziennik audytu (kto, co, kiedy)."]
-  ];
-
-  p("-- ---------- TABELE RDZENIA ----------");
-  tables.forEach(function(t){
-    var nm = t[0], cols = t[1], desc = t[2];
-    p("create table if not exists public." + nm + " (");
-    p("  " + cols.join(",\n  "));
-    p(");");
-    p("comment on table public." + nm + " is '" + desc.replace(/'/g,"''") + "';");
-    p("");
-  });
-
-  p("-- ---------- FUNKCJA RLS (po utworzeniu tabel) ----------");
-  p("create or replace function public.is_org_member(p_org uuid)");
-  p("returns boolean language sql stable security definer set search_path = public as $$");
-  p("  select exists (select 1 from public.organizations o");
-  p("    where o.id = p_org and o.owner_id = auth.uid())");
-  p("  or exists (select 1 from public.users u where u.id = auth.uid() and u.org_id = p_org);");
-  p("$$;");
-  p("comment on function public.is_org_member(uuid) is 'Czy bieżący użytkownik należy do organizacji.';");
-  p("");
-  p("-- ---------- INDEKSY ----------");
-  p("create index if not exists idx_users_org on public.users(org_id);");
-  p("create index if not exists idx_projects_org on public.projects(org_id);");
-  p("create index if not exists idx_projects_owner on public.projects(owner_id);");
-  p("create index if not exists idx_exec_project on public.executions(project_id);");
-  p("create index if not exists idx_exec_status on public.executions(status);");
-  p("create index if not exists idx_logs_exec on public.logs(execution_id);");
-  p("create index if not exists idx_logs_project on public.logs(project_id);");
-  p("create index if not exists idx_subs_org on public.subscriptions(org_id);");
-  p("create index if not exists idx_billing_sub on public.billing(subscription_id);");
-  p("create index if not exists idx_billing_org on public.billing(org_id);");
-  p("create index if not exists idx_apikeys_org on public.api_keys(org_id);");
-  p("create index if not exists idx_prompts_project on public.prompts(project_id);");
-  p("create index if not exists idx_history_project on public.history(project_id);");
-  p("create index if not exists idx_audit_org on public.audit(org_id);");
-  p("");
-
-  p("-- ---------- TRIGGERY updated_at ----------");
-  ["users","organizations","projects","subscriptions","settings","prompts"].forEach(function(nm){
-    p("drop trigger if exists trg_" + nm + "_updated on public." + nm + ";");
-    p("create trigger trg_" + nm + "_updated before update on public." + nm +
-      " for each row execute function public.set_updated_at();");
-  });
-  p("");
-
-  p("-- ---------- RLS + POLICIES ----------");
-  // users: own row
-  var rls = function(nm){ p("alter table public." + nm + " enable row level security;"); };
-  tables.forEach(function(t){ rls(t[0]); });
-  p("");
-  p("-- users: dostęp do własnego profilu");
-  p("drop policy if exists users_self on public.users;");
-  p("create policy users_self on public.users for all using (id = auth.uid()) with check (id = auth.uid());");
-  p("-- organizations: właściciel lub członek");
-  p("drop policy if exists org_member on public.organizations;");
-  p("create policy org_member on public.organizations for all using (owner_id = auth.uid() or public.is_org_member(id)) with check (owner_id = auth.uid());");
-  // tabele powiązane z org przez org_id
-  ["projects","subscriptions","billing","api_keys","settings","audit"].forEach(function(nm){
-    p("drop policy if exists " + nm + "_org on public." + nm + ";");
-    p("create policy " + nm + "_org on public." + nm + " for all using (public.is_org_member(org_id)) with check (public.is_org_member(org_id));");
-  });
-  // tabele powiązane przez project_id -> projects.org_id
-  ["executions","prompts","history"].forEach(function(nm){
-    p("drop policy if exists " + nm + "_proj on public." + nm + ";");
-    p("create policy " + nm + "_proj on public." + nm + " for all using (exists (select 1 from public.projects pr where pr.id = " + nm + ".project_id and public.is_org_member(pr.org_id))) with check (exists (select 1 from public.projects pr where pr.id = " + nm + ".project_id and public.is_org_member(pr.org_id)));");
-  });
-  p("-- logs: przez execution/project");
-  p("drop policy if exists logs_scope on public.logs;");
-  p("create policy logs_scope on public.logs for all using (exists (select 1 from public.projects pr where pr.id = logs.project_id and public.is_org_member(pr.org_id))) with check (true);");
-  p("");
-
-  p("-- ---------- WIDOKI ----------");
-  p("create or replace view public.v_project_overview as");
-  p("  select pr.id, pr.name, pr.status, pr.org_id,");
-  p("         count(distinct e.id) as executions,");
-  p("         count(distinct e.id) filter (where e.status='error') as errors,");
-  p("         max(e.started_at) as last_run");
-  p("  from public.projects pr left join public.executions e on e.project_id = pr.id");
-  p("  group by pr.id;");
-  p("comment on view public.v_project_overview is 'Podsumowanie projektów: liczba wykonań, błędy, ostatni run.';");
-  p("");
-  p("create or replace view public.v_active_subscriptions as");
-  p("  select s.*, o.name as org_name from public.subscriptions s");
-  p("  join public.organizations o on o.id = s.org_id");
-  p("  where s.status in ('trialing','active');");
-  p("comment on view public.v_active_subscriptions is 'Aktywne subskrypcje z nazwą organizacji.';");
-  p("");
-
-  // Opcjonalne tabele domenowe z celu
-  if (ents.length){
-    p("-- ---------- TABELE DOMENOWE (z celu projektu) ----------");
-    ents.forEach(function(nm){
-      p("create table if not exists public." + nm + " (");
-      p("  id uuid primary key default gen_random_uuid(),");
-      p("  project_id uuid not null references public.projects(id) on delete cascade,");
-      p("  data jsonb not null default '{}'::jsonb,");
-      p("  created_at timestamptz not null default now()");
-      p(");");
-      p("alter table public." + nm + " enable row level security;");
-      p("drop policy if exists " + nm + "_proj on public." + nm + ";");
-      p("create policy " + nm + "_proj on public." + nm + " for all using (exists (select 1 from public.projects pr where pr.id = " + nm + ".project_id and public.is_org_member(pr.org_id))) with check (true);");
-      p("create index if not exists idx_" + nm + "_project on public." + nm + "(project_id);");
-      p("");
-    });
-  }
-
-  p("-- KONIEC SCHEMATU");
-  return L.join("\n");
+/* ===== NEXION — backendowy generator SQL (nx-generate, auth: nx_sessions x-nx-token) ===== */
+var NX_GEN_EP="https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/nx-generate";
+async function nxBackendSql(apis, goal){
+  var ctrl=new AbortController(); var timer=setTimeout(function(){ctrl.abort();},20000);
+  try{
+    var tok=(typeof nxTok==="function"?nxTok():"")||"";
+    if(!tok){ if(typeof toast==="function")toast("Zaloguj się, aby generować SQL.","Logowanie","warn"); if(window.go)go("account"); var e=new Error("no_session"); e.__handled=1; throw e; }
+    var r;
+    try{ r=await fetch(NX_GEN_EP,{method:"POST",signal:ctrl.signal,headers:{"content-type":"application/json","x-nx-token":tok},body:JSON.stringify({action:"generate_sql",input:{goal:goal.name,ent:goal.ent||[]}})}); }
+    catch(netErr){ if(netErr&&netErr.name==="AbortError")throw netErr; if(typeof toast==="function")toast("Brak połączenia z generatorem. Spróbuj ponownie.","Błąd sieci","warn"); var e2=new Error("network"); e2.__handled=1; throw e2; }
+    if(r.status===401){ if(typeof toast==="function")toast("Sesja wygasła — zaloguj się ponownie.","Logowanie","warn"); if(window.go)go("account"); var e3=new Error("unauthorized"); e3.__handled=1; throw e3; }
+    if(r.status===402){ if(typeof nxUpsell==="function")nxUpsell(); var e4=new Error("plan_required"); e4.__handled=1; throw e4; }
+    if(r.status===403){ if(typeof toast==="function")toast("Dostęp zablokowany dla tej domeny.","Blokada","warn"); var e5=new Error("forbidden"); e5.__handled=1; throw e5; }
+    if(r.status===429){ if(typeof toast==="function")toast("Limit generowania wyczerpany. Spróbuj później.","Limit","warn"); var e6=new Error("rate_limit"); e6.__handled=1; throw e6; }
+    if(!r.ok){ if(typeof toast==="function")toast("Generator chwilowo niedostępny.","Błąd","warn"); var e7=new Error("backend_"+r.status); e7.__handled=1; throw e7; }
+    var j=await r.json();
+    if(!j||!j.ok||!j.result||!j.result.sql){ if(typeof toast==="function")toast("Nieprawidłowa odpowiedź generatora.","Błąd","warn"); var e8=new Error("bad_response"); e8.__handled=1; throw e8; }
+    return j.result.sql;
+  } catch(err){ if(err&&err.name==="AbortError"){ if(typeof toast==="function")toast("Przekroczono czas (20 s). Anulowano.","Timeout","warn"); var e9=new Error("timeout"); e9.__handled=1; throw e9; } throw err; }
+  finally{ clearTimeout(timer); }
 }
+// Wrapper: blokada podwójnego kliknięcia + stan ładowania + bezpieczna obsługa błędu
+function nxWithSql(btn, apis, goal, cb){
+  return async function(){
+    if(btn && btn.getAttribute("data-busy")==="1") return;
+    var prev=btn?btn.textContent:null;
+    if(btn){ btn.setAttribute("data-busy","1"); btn.disabled=true; btn.textContent="Generuję…"; }
+    try{ var sql=await nxBackendSql(apis, goal); await cb(sql); }
+    catch(e){ if(!(e&&e.__handled) && typeof toast==="function") toast("Nie udało się wygenerować SQL.","Błąd","warn"); }
+    finally{ if(btn){ btn.setAttribute("data-busy",""); btn.disabled=false; btn.textContent=prev; } }
+  };
+}
+/* nxSql: PRZENIESIONE NA BACKEND (Edge Function nx-generate). Generator SQL nie znajduje się już w kliencie. */
 function nxEdge(apis,goal){const a=apis[0]||{n:"API",url:"https://api.example.com"};
  return "// NEXION 2.0 · Edge Function (Supabase / Deno) dla: "+goal.name+"\n// Kompletny plik z obsługą błędów i komentarzami.\nimport \"jsr:@supabase/functions-js/edge-runtime.d.ts\";\n\nconst API_KEY = Deno.env.get(\""+nxSlug(a.n).toUpperCase()+"_KEY\"); // ustaw w Supabase Secrets\n\nDeno.serve(async (req) => {\n  const cors = { \"access-control-allow-origin\": \"*\", \"content-type\": \"application/json\" };\n  if (req.method === \"OPTIONS\") return new Response(\"ok\", { headers: cors });\n  try {\n    const body = await req.json().catch(() => ({}));\n    // 1) Wywołanie zewnętrznego API: "+a.n+"\n    const r = await fetch(\""+(a.url||"https://api.example.com")+"\", {\n      method: \"POST\",\n      headers: { \"Authorization\": \"Bearer \" + API_KEY, \"content-type\": \"application/json\" },\n      body: JSON.stringify(body)\n    });\n    if (!r.ok) return new Response(JSON.stringify({ error: \"upstream\", status: r.status }), { status: 502, headers: cors });\n    const data = await r.json();\n    // 2) Tu zapisz wynik do bazy / zwróć do klienta\n    return new Response(JSON.stringify({ ok: true, data }), { headers: cors });\n  } catch (e) {\n    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: cors });\n  }\n});\n";}
 function nxCost(apis){let min=0,max=0;apis.forEach(a=>{if(!a.free){min+=80;max+=400;}else{min+=0;max+=60;}});return{min:min,max:max};}
@@ -1689,7 +1469,7 @@ function renderCopilot(sec){
   const days=apis.reduce((s,a)=>s+(a.ttdD||2),0);const cost=nxCost(apis);
   const hi=apis.filter(a=>a.risk==="high").length;const risk=hi>1?"podwyższone":hi===1?"umiarkowane":"niskie";
   const keys=apis.filter(a=>!a.free);
-  const wf=nxWorkflow(apis,goal),sql=nxSql(apis,goal),edge=nxEdge(apis,goal);
+  const wf=nxWorkflow(apis,goal),edge=nxEdge(apis,goal);
   const svg=nxDiagram(apis,goal);
   const rev=apis.reduce((s,a)=>s+(a.rev||0),0);const roi=Math.round(rev/Math.max(1,apis.length));
   out.innerHTML="";
@@ -1703,13 +1483,13 @@ function renderCopilot(sec){
   const dl=el("div","panel edge");dl.style.marginTop="12px";dl.innerHTML='<h3>✔ Gotowe pliki do pobrania</h3><div class="small mut" style="margin:6px 0 10px">Zaimportuj bez ręcznej edycji.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" id="nxDlWf">Pobierz workflow n8n (JSON)</button><button class="btn" id="nxDlSql">Pobierz schemat bazy (SQL)</button><button class="btn" id="nxDlEdge">Pobierz Edge Function (TS)</button> <button class="btn gold" id="nxDlSave">💾 Zapisz w chmurze</button> <button class="btn" id="nxDlDeploy">🚀 Wdroż jednym kliknięciem</button> <button class="btn gold" id="nxDlPack">📦 Pełny pakiet (JSON)</button> <button class="btn" id="nxDlPdf">📄 Raport projektu (PDF)</button></div>';out.appendChild(dl);
   const sl=nxSlug(goal.name);
   dl.querySelector("#nxDlWf").onclick=nxGate(()=>download("nexion_"+sl+"_workflow.json",wf,"application/json"));
-  dl.querySelector("#nxDlSql").onclick=nxGate(()=>download("nexion_"+sl+"_schema.sql",sql,"text/plain"));
+  dl.querySelector("#nxDlSql").onclick=nxGate(nxWithSql(dl.querySelector("#nxDlSql"),apis,goal,function(sql){download("nexion_"+sl+"_schema.sql",sql,"text/plain");}));
   dl.querySelector("#nxDlEdge").onclick=nxGate(()=>download("nexion_"+sl+"_edge.ts",edge,"text/plain"));
-  dl.querySelector("#nxDlSave").onclick=function(){nxSaveProject(goal.name,"copilot",{goal:goal.name,apis:apis.map(function(a){return a.n;}),days:days,workflow:wf,sql:sql});};
-  dl.querySelector("#nxDlDeploy").onclick=nxGate(function(){nxDeployPanel(out,{slug:sl,name:goal.name,workflow:wf,sql:sql,edge:edge});});
-  const packCtx={goal:goal,apis:apis,days:days,cost:cost,risk:risk,roi:roi,wf:wf,sql:sql,edge:edge,svg:svg};
-  dl.querySelector("#nxDlPack").onclick=nxGate(()=>download("nexion_"+sl+"_pakiet.json",JSON.stringify(nxPackage(packCtx),null,2),"application/json"));
-  dl.querySelector("#nxDlPdf").onclick=nxGate(()=>nxReportPdf(packCtx));
+  dl.querySelector("#nxDlSave").onclick=nxWithSql(dl.querySelector("#nxDlSave"),apis,goal,function(sql){nxSaveProject(goal.name,"copilot",{goal:goal.name,apis:apis.map(function(a){return a.n;}),days:days,workflow:wf,sql:sql});});
+  dl.querySelector("#nxDlDeploy").onclick=nxGate(nxWithSql(dl.querySelector("#nxDlDeploy"),apis,goal,function(sql){nxDeployPanel(out,{slug:sl,name:goal.name,workflow:wf,sql:sql,edge:edge});}));
+  const packCtx={goal:goal,apis:apis,days:days,cost:cost,risk:risk,roi:roi,wf:wf,edge:edge,svg:svg};
+  dl.querySelector("#nxDlPack").onclick=nxGate(nxWithSql(dl.querySelector("#nxDlPack"),apis,goal,function(sql){download("nexion_"+sl+"_pakiet.json",JSON.stringify(nxPackage(Object.assign({},packCtx,{sql:sql})),null,2),"application/json");}));
+  dl.querySelector("#nxDlPdf").onclick=nxGate(nxWithSql(dl.querySelector("#nxDlPdf"),apis,goal,function(sql){nxReportPdf(Object.assign({},packCtx,{sql:sql}));}));
   const dg=el("div","panel edge");dg.style.marginTop="12px";dg.innerHTML='<h3>✔ Diagram architektury</h3><div style="margin-top:8px">'+svg+'</div>';out.appendChild(dg);
   const prm=el("div","panel edge");prm.style.marginTop="12px";prm.innerHTML='<h3>✔ Prompty LLM (4)</h3><div class="small mut" style="margin:6px 0 8px">Gotowe do wklejenia w n8n / Edge Function — pełna treść w pakiecie JSON i raporcie PDF.</div>'+nxPrompts(apis,goal).map(function(pr){return '<div class="small" style="padding:4px 0"><b>'+pr.name+'</b> <span class="mut">('+pr.model+')</span></div>';}).join("");out.appendChild(prm);
   if(typeof toast==="function")toast("Projekt gotowy: "+goal.name,"AI Copilot","ok");
@@ -1852,7 +1632,7 @@ function renderLibrary(sec){
   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn gold" id="nxLibWf">Pobierz workflow n8n (JSON)</button><button class="btn" id="nxLibSql">Pobierz schemat bazy (SQL)</button></div>';
   detail.appendChild(d);
   d.querySelector("#nxLibWf").onclick=function(){download("nexion_"+sl+"_workflow.json",nxWorkflow(p.apis,p.goal),"application/json");};
-  d.querySelector("#nxLibSql").onclick=function(){download("nexion_"+sl+"_schema.sql",nxSql(p.apis,p.goal),"text/plain");};
+  d.querySelector("#nxLibSql").onclick=nxWithSql(d.querySelector("#nxLibSql"),p.apis,p.goal,function(sql){download("nexion_"+sl+"_schema.sql",sql,"text/plain");});
   detail.scrollIntoView&&detail.scrollIntoView({behavior:"smooth",block:"start"});};
  var draw=function(){grid.innerHTML="";var q=state.q.toLowerCase();var f=lib.filter(function(p){var okT=state.t==="Wszystkie"||p.type===state.t;var okQ=!q||(p.name.toLowerCase().indexOf(q)>=0||p.niche.toLowerCase().indexOf(q)>=0||p.type.toLowerCase().indexOf(q)>=0);return okT&&okQ;});
   var show=f.slice(0,state.lim);show.forEach(function(p){var c=el("div","panel edge");c.style.cursor="pointer";c.innerHTML='<div style="font-weight:800;font-size:14px">'+p.name+'</div><div class="mut small" style="margin:4px 0 8px">'+p.desc+'</div><div class="small" style="color:var(--gold,#E8B04B)">'+p.days+' dni · ROI '+p.roi+'/100 · '+p.apis.length+' API</div>';c.onclick=function(){openDetail(p);};grid.appendChild(c);});
@@ -1930,9 +1710,9 @@ function renderBuilder(sec){
   var dlall=el("div","panel edge");dlall.style.marginTop="12px";dlall.innerHTML='<button class="btn gold" id="nxBbAll" style="font-weight:800">Pobierz cały plan (TXT)</button> <button class="btn" id="nxBbSave" style="font-weight:800">💾 Zapisz w chmurze</button> <button class="btn" id="nxBbDeploy" style="font-weight:800">🚀 Wdroż jednym kliknięciem</button>';out2.appendChild(dlall);
   var sl=nxSlug(idea);
   out2.querySelector("#nxBbWf").onclick=nxGate(function(){download("nexion_"+sl+"_workflow.json",nxWorkflow(apis,goal),"application/json");});
-  out2.querySelector("#nxBbSql").onclick=nxGate(function(){download("nexion_"+sl+"_schema.sql",nxSql(apis,goal),"text/plain");});
-  dlall.querySelector("#nxBbSave").onclick=function(){nxSaveProject(idea,"builder",{goal:idea,apis:apis.map(function(a){return a.n;}),workflow:nxWorkflow(apis,goal),sql:nxSql(apis,goal)});};
-  dlall.querySelector("#nxBbDeploy").onclick=nxGate(function(){nxDeployPanel(out2,{slug:sl,name:idea,workflow:nxWorkflow(apis,goal),sql:nxSql(apis,goal),edge:nxEdge(apis,goal)});});
+  out2.querySelector("#nxBbSql").onclick=nxGate(nxWithSql(out2.querySelector("#nxBbSql"),apis,goal,function(sql){download("nexion_"+sl+"_schema.sql",sql,"text/plain");}));
+  dlall.querySelector("#nxBbSave").onclick=nxWithSql(dlall.querySelector("#nxBbSave"),apis,goal,function(sql){nxSaveProject(idea,"builder",{goal:idea,apis:apis.map(function(a){return a.n;}),workflow:nxWorkflow(apis,goal),sql:sql});});
+  dlall.querySelector("#nxBbDeploy").onclick=nxGate(nxWithSql(dlall.querySelector("#nxBbDeploy"),apis,goal,function(sql){nxDeployPanel(out2,{slug:sl,name:idea,workflow:nxWorkflow(apis,goal),sql:sql,edge:nxEdge(apis,goal)});}));
   dlall.querySelector("#nxBbAll").onclick=function(){var txt="PLAN BIZNESOWY — "+idea+"\n\nMODEL:\n- "+b.model.join("\n- ")+"\n\nPERSONY:\n- "+b.persony.map(function(p){return p.t+": "+p.d;}).join("\n- ")+"\n\nLANDING:\n"+b.landing.h+"\n"+b.landing.sub+"\n- "+b.landing.secs.join("\n- ")+"\n\nSEO:\n- "+b.seo.join("\n- ")+"\n\nADS:\n- "+b.ads.join("\n- ")+"\n\nCOLD MAIL:\n"+b.cold+"\n\nSOCIAL:\n- "+b.social.join("\n- ")+"\n\nOFERTY:\n- "+b.oferty.map(function(o){return o.n+" "+o.p+" — "+o.z;}).join("\n- ")+"\n\nUMOWA:\n"+b.umowa+"\n\nHARMONOGRAM:\n- "+b.harmonogram.map(function(x){return x[0]+": "+x[1];}).join("\n- ")+"\n";download("nexion_"+sl+"_plan_biznesowy.txt",txt,"text/plain");};
   if(typeof toast==="function")toast("Biznes gotowy: "+idea,"AI Business Builder","ok");out2.scrollIntoView&&out2.scrollIntoView({behavior:"smooth",block:"start"});
  };
@@ -1971,7 +1751,7 @@ function renderAccount(sec){
   var planP=el("div","panel edge");planP.style.marginTop="12px";planP.innerHTML='<h3 style="margin:0 0 8px">Twój plan</h3><div id="nxPlanBody" class="small mut">Sprawdzam…</div>';wrap.appendChild(planP);var payBtn=el("button","btn ghost");payBtn.id="nxPayChk";payBtn.textContent="🔄 Sprawdź status płatności";payBtn.style.marginTop="10px";planP.appendChild(payBtn);payBtn.onclick=function(){payBtn.textContent="Sprawdzam…";fetch("https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/nx-stripe-poll",{method:"POST",headers:{"content-type":"application/json"},body:"{}"}).then(function(){return nxRefreshPlan();}).then(function(){if(typeof draw==="function")draw();else payBtn.textContent="🔄 Sprawdź status płatności";});};
   nxAcc("me",{}).then(function(r){var plan=(r&&r.plan)||"free";var em=encodeURIComponent(nxEmail());var proL="https://buy.stripe.com/dRm14f6kI0Wx5N11pVdQQ2N?client_reference_id="+em+"&prefilled_email="+em;var bizL="https://buy.stripe.com/8x29AL9wU7kV3ET2tZdQQ2P?client_reference_id="+em+"&prefilled_email="+em;var body=planP.querySelector("#nxPlanBody");if(!body)return;if(plan==="free"){body.innerHTML='<div style="margin-bottom:8px">Obecny plan: <b style="color:var(--txt,#fff)">FREE</b></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn gold" href="'+proL+'" target="_blank" rel="noopener" style="text-decoration:none">Przejdź na Pro — 349 zł/mc</a><a class="btn" href="'+bizL+'" target="_blank" rel="noopener" style="text-decoration:none">Business — 1 490 zł/mc</a></div><div class="small mut" style="margin-top:6px">Po opłaceniu dostęp aktywuje się automatycznie.</div>';}else{body.innerHTML='<div style="color:var(--grn,#3fce78);font-weight:700;font-size:15px">Plan aktywny: '+String(plan).toUpperCase()+" ✓"+'</div>';}});
   var add=el("div","panel edge");add.style.marginTop="12px";add.innerHTML='<h3 style="margin:0 0 8px">Zapisz nowy projekt</h3><div class="small mut" style="margin-bottom:8px">Wpisz cel — wygenerujemy i zapiszemy gotowy projekt (API + workflow + baza).</div><input id="nxSvGoal" placeholder="np. CRM dla gastronomii" style="width:100%;background:var(--bg2,#0b2b28);border:1px solid var(--line,#1b4b46);color:var(--txt,#fff);border-radius:10px;padding:11px 14px;font-size:15px;outline:none"><button class="btn gold" id="nxSvGo" style="margin-top:10px;font-weight:800">Zapisz projekt</button>';wrap.appendChild(add);
-  add.querySelector("#nxSvGo").onclick=function(){var q=(add.querySelector("#nxSvGoal").value||"").trim();if(!q){return;}var goal=nxGoal(q);var apis=nxPick(goal.cats,5);var days=apis.reduce(function(s,a){return s+(a.ttdD||2);},0);var payload={goal:goal.name,apis:apis.map(function(a){return a.n;}),days:days,workflow:nxWorkflow(apis,goal),sql:nxSql(apis,goal)};nxAcc("save",{title:goal.name,type:"copilot",payload:payload}).then(function(r){if(r.ok){add.querySelector("#nxSvGoal").value="";loadList();if(typeof toast==="function")toast("Zapisano: "+goal.name,"Moje projekty","ok");}else{if(typeof toast==="function")toast("Nie udało się zapisać.","Błąd","warn");}});};
+  add.querySelector("#nxSvGo").onclick=async function(){var __b=add.querySelector("#nxSvGo");if(__b.getAttribute("data-busy")==="1")return;var q=(add.querySelector("#nxSvGoal").value||"").trim();if(!q){return;}var goal=nxGoal(q);var apis=nxPick(goal.cats,5);var days=apis.reduce(function(s,a){return s+(a.ttdD||2);},0);__b.setAttribute("data-busy","1");__b.disabled=true;var __sql;try{__sql=await nxBackendSql(apis,goal);}catch(e){__b.setAttribute("data-busy","");__b.disabled=false;return;}var payload={goal:goal.name,apis:apis.map(function(a){return a.n;}),days:days,workflow:nxWorkflow(apis,goal),sql:__sql};nxAcc("save",{title:goal.name,type:"copilot",payload:payload}).then(function(r){if(r.ok){add.querySelector("#nxSvGoal").value="";loadList();if(typeof toast==="function")toast("Zapisano: "+goal.name,"Moje projekty","ok");}else{if(typeof toast==="function")toast("Nie udało się zapisać.","Błąd","warn");}}).finally(function(){__b.setAttribute("data-busy","");__b.disabled=false;});};
   var listBox=el("div","panel edge");listBox.style.marginTop="12px";listBox.innerHTML='<h3 style="margin:0 0 8px">Zapisane projekty</h3><div id="nxLst" class="small mut">Wczytuję…</div>';wrap.appendChild(listBox);
   var det=el("div");det.id="nxAccDet";det.style.marginTop="12px";wrap.appendChild(det);
   var loadList=function(){nxAcc("list",{}).then(function(r){var host=listBox.querySelector("#nxLst");if(!r.ok){host.innerHTML="Błąd wczytywania.";return;}if(!r.projects||!r.projects.length){host.innerHTML="Brak zapisanych projektów. Zapisz pierwszy powyżej.";return;}host.innerHTML="";r.projects.forEach(function(p){var row=el("div");row.style.cssText="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line,#1b4b46);padding:8px 0";row.innerHTML='<div><b style="font-size:14px;color:var(--txt,#fff)">'+p.title+'</b><div class="mut" style="font-size:11px">'+(p.type||"")+' · '+(p.created_at||"").slice(0,10)+'</div></div><div style="display:flex;gap:6px"><button class="btn" data-open="'+p.id+'" style="padding:5px 10px;font-size:12px">Otwórz</button><button class="btn ghost" data-del="'+p.id+'" style="padding:5px 10px;font-size:12px">Usuń</button></div>';host.appendChild(row);});
