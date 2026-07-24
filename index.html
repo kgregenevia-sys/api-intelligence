@@ -1367,6 +1367,25 @@ function nxWithSqlWf(btn, apis, goal, cb){
     finally{ if(btn){ btn.setAttribute("data-busy",""); btn.disabled=false; btn.textContent=prev; } }
   };
 }
+async function nxBackendBusinessBuilder(idea, goal, apis){
+  var ctrl=new AbortController(); var timer=setTimeout(function(){ctrl.abort();},20000);
+  try{
+    var tok=(typeof nxTok==="function"?nxTok():"")||"";
+    if(!tok){ if(typeof toast==="function")toast("Zaloguj się, aby generować biznes.","Logowanie","warn"); if(window.go)go("account"); var e=new Error("no_session"); e.__handled=1; throw e; }
+    var r;
+    try{ r=await fetch(NX_GEN_EP,{method:"POST",signal:ctrl.signal,headers:{"content-type":"application/json","x-nx-token":tok},body:JSON.stringify({action:"generate_business_builder",input:{goal:goal.name,ent:goal.ent||[],idea:idea,apis:apis}})}); }
+    catch(netErr){ if(netErr&&netErr.name==="AbortError")throw netErr; if(typeof toast==="function")toast("Brak połączenia z generatorem. Spróbuj ponownie.","Błąd sieci","warn"); var e2=new Error("network"); e2.__handled=1; throw e2; }
+    if(r.status===401){ if(typeof toast==="function")toast("Sesja wygasła — zaloguj się ponownie.","Logowanie","warn"); if(window.go)go("account"); var e3=new Error("unauthorized"); e3.__handled=1; throw e3; }
+    if(r.status===402){ if(typeof nxUpsell==="function")nxUpsell(); var e4=new Error("plan_required"); e4.__handled=1; throw e4; }
+    if(r.status===403){ if(typeof toast==="function")toast("Dostęp zablokowany dla tej domeny.","Blokada","warn"); var e5=new Error("forbidden"); e5.__handled=1; throw e5; }
+    if(r.status===429){ if(typeof toast==="function")toast("Limit generowania wyczerpany. Spróbuj później.","Limit","warn"); var e6=new Error("rate_limit"); e6.__handled=1; throw e6; }
+    if(!r.ok){ if(typeof toast==="function")toast("Generator chwilowo niedostępny.","Błąd","warn"); var e7=new Error("backend_"+r.status); e7.__handled=1; throw e7; }
+    var j=await r.json();
+    if(!j||!j.ok||!j.result||!j.result.business_builder){ if(typeof toast==="function")toast("Nieprawidłowa odpowiedź generatora.","Błąd","warn"); var e8=new Error("bad_response"); e8.__handled=1; throw e8; }
+    return j.result.business_builder;
+  } catch(err){ if(err&&err.name==="AbortError"){ if(typeof toast==="function")toast("Przekroczono czas (20 s). Anulowano.","Timeout","warn"); var e9=new Error("timeout"); e9.__handled=1; throw e9; } throw err; }
+  finally{ clearTimeout(timer); }
+}
 /* nxSql: PRZENIESIONE NA BACKEND (Edge Function nx-generate). Generator SQL nie znajduje się już w kliencie. */
 function nxEdge(apis,goal){const a=apis[0]||{n:"API",url:"https://api.example.com"};
  return "// NEXION 2.0 · Edge Function (Supabase / Deno) dla: "+goal.name+"\n// Kompletny plik z obsługą błędów i komentarzami.\nimport \"jsr:@supabase/functions-js/edge-runtime.d.ts\";\n\nconst API_KEY = Deno.env.get(\""+nxSlug(a.n).toUpperCase()+"_KEY\"); // ustaw w Supabase Secrets\n\nDeno.serve(async (req) => {\n  const cors = { \"access-control-allow-origin\": \"*\", \"content-type\": \"application/json\" };\n  if (req.method === \"OPTIONS\") return new Response(\"ok\", { headers: cors });\n  try {\n    const body = await req.json().catch(() => ({}));\n    // 1) Wywołanie zewnętrznego API: "+a.n+"\n    const r = await fetch(\""+(a.url||"https://api.example.com")+"\", {\n      method: \"POST\",\n      headers: { \"Authorization\": \"Bearer \" + API_KEY, \"content-type\": \"application/json\" },\n      body: JSON.stringify(body)\n    });\n    if (!r.ok) return new Response(JSON.stringify({ error: \"upstream\", status: r.status }), { status: 502, headers: cors });\n    const data = await r.json();\n    // 2) Tu zapisz wynik do bazy / zwróć do klienta\n    return new Response(JSON.stringify({ ok: true, data }), { headers: cors });\n  } catch (e) {\n    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: cors });\n  }\n});\n";}
@@ -1706,21 +1725,7 @@ function renderMarket(sec){
 /* ===================== /MODUŁ 5 ===================== */
 
 /* ===================== NEXION 2.0 · MODUŁ 10: AI BUSINESS BUILDER ===================== */
-function nxBiz(idea,goal,apis){
- var n=goal.name.replace(/^.*: /,"");var days=apis.reduce(function(s,a){return s+(a.ttdD||2);},0);
- return {
-  model:["Segment klientów: firmy i osoby szukające rozwiązania „"+idea+"”.","Propozycja wartości: oszczędność czasu i pieniędzy dzięki automatyzacji ("+n+").","Kanały: SEO, social media, cold mailing, polecenia.","Przychód: abonament miesięczny + wdrożenia + pakiety premium.","Koszty: API/AI, infrastruktura (Supabase, n8n), marketing.","Przewaga: gotowy zestaw integracji i szybkie wdrożenie ("+days+" dni)."],
-  persony:[{t:"Właściciel małej firmy",d:"chce więcej klientów bez zatrudniania — szuka narzędzia, które zrobi robotę za niego."},{t:"Manager / operacje",d:"chce uporządkować procesy i mieć dane w jednym miejscu, zamiast 10 aplikacji."}],
-  landing:{h:n+" — gotowe w "+days+" dni",sub:"Ustaw raz, a system pracuje za Ciebie: szuka, publikuje, pilnuje i podpowiada.",secs:["Co zyskujesz: mniej klikania, więcej wyników.","Jak działa: 3 kroki — podłącz, ustaw, uruchom.","Dowód: gotowe integracje "+apis.slice(0,3).map(function(a){return a.n;}).join(", ")+"."],cta:"Zamów wdrożenie"},
-  seo:["automatyzacja "+n.toLowerCase(),n.toLowerCase()+" dla firm","jak zautomatyzować "+idea,"narzędzie "+idea,"system "+idea+" cena"],
-  ads:["Nagłówek: „Przestań tracić czas na "+idea+"”","Angle: oszczędność godzin dziennie","Angle: więcej klientów z tego samego ruchu","CTA: Wypróbuj / Umów demo"],
-  cold:"Temat: Szybkie pytanie o "+idea+"\n\nCześć {imię}, pomagamy firmom z branży {branża} zautomatyzować "+idea+" — zwykle oszczędza to kilka godzin dziennie. Otwarty na 15 min rozmowy w tym tygodniu?",
-  social:["Pon: problem, który rozwiązujesz","Śr: case / efekt liczbowo","Pt: kulisy / jak to działa","Nd: oferta + CTA"],
-  oferty:[{n:"Start",p:"149 zł/mc",z:"podstawowa automatyzacja + wsparcie mailowe"},{n:"Pro",p:"349 zł/mc",z:"pełny system + integracje + priorytet"},{n:"Wdrożenie",p:"od 2 500 zł",z:"konfiguracja pod klucz + szkolenie"}],
-  umowa:"UMOWA (szkielet): Strony, Przedmiot (wdrożenie systemu "+n+"), Zakres, Wynagrodzenie i płatności, Termin ("+days+" dni), Poufność, RODO/powierzenie danych, Odpowiedzialność, Rozwiązanie, Postanowienia końcowe. (Do weryfikacji prawnej.)",
-  harmonogram:[["0–30 dni","konfiguracja, integracje "+apis.slice(0,2).map(function(a){return a.n;}).join(" i ")+", pierwszy przepływ"],["31–60 dni","uruchomienie sprzedaży, onboarding klientów, optymalizacja"],["61–90 dni","skalowanie, kolejne kanały, raporty i automatyzacja obsługi"]]
- };
-}
+/* nxBiz: PRZENIESIONE NA BACKEND (Edge Function nx-generate, action generate_business_builder). Generator Business Builder nie znajduje się już w kliencie. */
 function renderBuilder(sec){
  mhead(sec,"AI Business Builder","Wpisz pomysł — dostajesz kompletny biznes: model, persony, landing, kampanie, tech, harmonogram","kompletny plan");
  var box=el("div","panel edge");box.style.marginBottom="14px";
@@ -1728,8 +1733,16 @@ function renderBuilder(sec){
  sec.appendChild(box);var out=el("div");out.id="nxBbOut";sec.appendChild(out);
  var P=function(title,html){var p=el("div","panel edge");p.style.marginTop="12px";p.innerHTML='<h3 style="margin:0 0 8px">'+title+'</h3>'+html;return p;};
  var ul=function(arr){return '<ul style="margin:0 0 0 18px">'+arr.map(function(t){return '<li style="padding:3px 0;font-size:13.5px">'+t+'</li>';}).join("")+'</ul>';};
- var run=function(){
-  var idea=(box.querySelector("#nxBbGoal").value||"").trim()||"nowy biznes";var goal=nxGoal(idea);var apis=nxPick(goal.cats,5);var b=nxBiz(idea,goal,apis);var out2=out;out2.innerHTML="";
+ var run=async function(){
+  var gbtn=box.querySelector("#nxBbGen");
+  if(gbtn&&gbtn.getAttribute("data-busy")==="1")return;
+  var gprev=gbtn?gbtn.textContent:null;
+  if(gbtn){gbtn.setAttribute("data-busy","1");gbtn.disabled=true;gbtn.textContent="Buduję…";}
+  var idea=(box.querySelector("#nxBbGoal").value||"").trim()||"nowy biznes";var goal=nxGoal(idea);var apis=nxPick(goal.cats,5);
+  var b;
+  try{ b=await nxBackendBusinessBuilder(idea,goal,apis); }
+  catch(e){ if(!(e&&e.__handled)&&typeof toast==="function")toast("Nie udało się zbudować biznesu.","Błąd","warn"); if(gbtn){gbtn.setAttribute("data-busy","");gbtn.disabled=false;gbtn.textContent=gprev;} return; }
+  var out2=out;out2.innerHTML="";
   var h=el("div","panel edge hl");h.innerHTML='<h2 style="margin:0">Biznes: '+idea+'</h2><div class="mut small" style="margin-top:4px">Kompletny plan wygenerowany z bazy 142 API · silnik NEXION</div>';out2.appendChild(h);
   out2.appendChild(P("Model biznesowy",ul(b.model)));
   out2.appendChild(P("Persony klientów",b.persony.map(function(p){return '<div style="margin-bottom:6px"><b>'+p.t+'</b> <span class="mut small">— '+p.d+'</span></div>';}).join("")));
@@ -1750,6 +1763,7 @@ function renderBuilder(sec){
   dlall.querySelector("#nxBbDeploy").onclick=nxGate(nxWithSqlWf(dlall.querySelector("#nxBbDeploy"),apis,goal,function(sql,wf){nxDeployPanel(out2,{slug:sl,name:idea,workflow:wf,sql:sql,edge:nxEdge(apis,goal)});}));
   dlall.querySelector("#nxBbAll").onclick=function(){var txt="PLAN BIZNESOWY — "+idea+"\n\nMODEL:\n- "+b.model.join("\n- ")+"\n\nPERSONY:\n- "+b.persony.map(function(p){return p.t+": "+p.d;}).join("\n- ")+"\n\nLANDING:\n"+b.landing.h+"\n"+b.landing.sub+"\n- "+b.landing.secs.join("\n- ")+"\n\nSEO:\n- "+b.seo.join("\n- ")+"\n\nADS:\n- "+b.ads.join("\n- ")+"\n\nCOLD MAIL:\n"+b.cold+"\n\nSOCIAL:\n- "+b.social.join("\n- ")+"\n\nOFERTY:\n- "+b.oferty.map(function(o){return o.n+" "+o.p+" — "+o.z;}).join("\n- ")+"\n\nUMOWA:\n"+b.umowa+"\n\nHARMONOGRAM:\n- "+b.harmonogram.map(function(x){return x[0]+": "+x[1];}).join("\n- ")+"\n";download("nexion_"+sl+"_plan_biznesowy.txt",txt,"text/plain");};
   if(typeof toast==="function")toast("Biznes gotowy: "+idea,"AI Business Builder","ok");out2.scrollIntoView&&out2.scrollIntoView({behavior:"smooth",block:"start"});
+  if(gbtn){gbtn.setAttribute("data-busy","");gbtn.disabled=false;gbtn.textContent=gprev;}
  };
  box.querySelector("#nxBbGen").onclick=run;box.querySelector("#nxBbGoal").addEventListener("keydown",function(e){if(e.key==="Enter")run();});
 }
