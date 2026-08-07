@@ -1,5 +1,5 @@
 // NEXION — Service Worker (PWA offline + auto-update). Bez zmian logiki app.
-const VERSION = 'nexion-v3-2026-08-07';
+const VERSION = 'nexion-v4-2026-08-07';
 const SHELL = ['./','./index.html','./site.webmanifest','./icon-192.png','./icon-512.png','./favicon.ico','./apple-touch-icon.png'];
 self.addEventListener('install', (e)=>{ e.waitUntil((async()=>{
   const c = await caches.open(VERSION);
