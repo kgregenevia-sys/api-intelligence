@@ -2808,5 +2808,422 @@ html[data-light] .navbtn{color:var(--mut)}
 </script>
 <script>(function(){var el=document.getElementById('nx-intro');if(!el)return;var kill=function(){if(!el)return;el.classList.add('gone');setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);el=null;},650);};var show=true;try{var d=new Date().toISOString().slice(0,10);if(localStorage.getItem('nexion.introDay')===d)show=false;else localStorage.setItem('nexion.introDay',d);}catch(e){}if(!show){if(el.parentNode)el.parentNode.removeChild(el);return;}el.style.display='flex';var t=setTimeout(kill,3100);el.addEventListener('click',function(){clearTimeout(t);kill();});})();</script>
 <script>window.nxSetLang=function(l){try{localStorage.setItem("nexion.lang",l)}catch(e){}if(window.go)go("over");};</script>
-<script>(function(){function run(){try{var q=(location.search||"");if(q.indexOf("paid=1")<0)return;if(typeof toast==="function")toast("Dziękujemy! Aktywuję Twój dostęp…","Płatność","ok");var tries=0;function poke(){fetch("https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/nx-stripe-poll",{method:"POST",headers:{"content-type":"application/json"},body:"{}"}).catch(function(){});}function check(){if(typeof nxRefreshPlan!=="function"){setTimeout(check,1500);return;}nxRefreshPlan().then(function(p){if(p&&p!=="free"){if(typeof toast==="function")toast("Dostęp Premium aktywny: "+String(p).toUpperCase()+" \u2713","Płatność","ok");try{history.replaceState(null,"",location.pathname);}catch(e){}if(window.go)go("account");}else if(tries<12){tries++;setTimeout(check,5000);}else{try{history.replaceState(null,"",location.pathname);}catch(e){}if(window.go)go("account");}});}poke();setTimeout(check,2500);}catch(e){}}if(document.readyState==="complete"||document.readyState==="interactive"){setTimeout(run,1200);}else{window.addEventListener("load",function(){setTimeout(run,1200);});}})();</script></body>
+<script>(function(){function run(){try{var q=(location.search||"");if(q.indexOf("paid=1")<0)return;if(typeof toast==="function")toast("Dziękujemy! Aktywuję Twój dostęp…","Płatność","ok");var tries=0;function poke(){fetch("https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/nx-stripe-poll",{method:"POST",headers:{"content-type":"application/json"},body:"{}"}).catch(function(){});}function check(){if(typeof nxRefreshPlan!=="function"){setTimeout(check,1500);return;}nxRefreshPlan().then(function(p){if(p&&p!=="free"){if(typeof toast==="function")toast("Dostęp Premium aktywny: "+String(p).toUpperCase()+" \u2713","Płatność","ok");try{history.replaceState(null,"",location.pathname);}catch(e){}if(window.go)go("account");}else if(tries<12){tries++;setTimeout(check,5000);}else{try{history.replaceState(null,"",location.pathname);}catch(e){}if(window.go)go("account");}});}poke();setTimeout(check,2500);}catch(e){}}if(document.readyState==="complete"||document.readyState==="interactive"){setTimeout(run,1200);}else{window.addEventListener("load",function(){setTimeout(run,1200);});}})();</script>
+<!-- NEXION MÓZG V2 GUIDE ENGINE -->
+<style id="nxg-guide-style">
+/* ===== NEXION MÓZG V2 — Guide Engine styles (namespaced #nxg*, no #mz* collision) ===== */
+/* overlay is ALWAYS click-through: dimming is drawn by #nxgHole box-shadow, and the
+   spotlighted target must stay physically clickable (click/input steps). Only the
+   tooltip (#nxgTip) and modal launcher (#nxgLaunch) capture pointer events. */
+#nxgOv{position:fixed;inset:0;z-index:2147483000;pointer-events:none!important;opacity:0;transition:opacity .2s ease;background:transparent}
+#nxgOv.nxgShow{opacity:1}
+#nxgOv.nxgDim0{background:transparent}
+/* spotlight: ciemność wokół elementu robimy ogromnym box-shadow "dziury" */
+#nxgHole{position:fixed;z-index:2147483001;border-radius:14px;pointer-events:none;opacity:0;transition:all .22s cubic-bezier(.4,0,.2,1),opacity .2s;box-shadow:0 0 0 9999px rgba(9,10,22,.72)}
+#nxgHole.nxgShow{opacity:1}
+#nxgRing{position:fixed;z-index:2147483002;border-radius:14px;pointer-events:none;opacity:0;border:2.5px solid #9D4EFF;box-shadow:0 0 0 4px rgba(157,78,255,.28),0 0 22px 4px rgba(157,78,255,.45);transition:all .22s cubic-bezier(.4,0,.2,1),opacity .2s}
+#nxgRing.nxgShow{opacity:1}
+#nxgRing.nxgPulse{animation:nxgPulse 1.6s ease-in-out infinite}
+@keyframes nxgPulse{0%,100%{box-shadow:0 0 0 3px rgba(157,78,255,.30),0 0 18px 3px rgba(157,78,255,.40)}50%{box-shadow:0 0 0 7px rgba(157,78,255,.14),0 0 30px 8px rgba(157,78,255,.55)}}
+/* arrow */
+#nxgArr{position:fixed;z-index:2147483003;width:0;height:0;pointer-events:none;opacity:0;transition:opacity .18s}
+#nxgArr.nxgShow{opacity:1}
+#nxgArr.nxgArr-up{border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:11px solid #9D4EFF}
+#nxgArr.nxgArr-down{border-left:8px solid transparent;border-right:8px solid transparent;border-top:11px solid #9D4EFF}
+#nxgArr.nxgArr-left{border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:11px solid #9D4EFF}
+#nxgArr.nxgArr-right{border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:11px solid #9D4EFF}
+/* tooltip */
+#nxgTip{position:fixed;z-index:2147483004;max-width:340px;background:#14152b;color:#eef;border:1px solid rgba(157,78,255,.55);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.5);opacity:0;pointer-events:none;transform:translateY(6px);transition:opacity .18s,transform .18s;font-family:inherit}
+#nxgTip.nxgShow{opacity:1;pointer-events:auto;transform:none}
+#nxgTip.nxgCenter{transform:translate(-50%,-50%)!important}
+.nxgTipIn{padding:16px 16px 14px}
+.nxgStepRow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nxgStep{font-size:12px;font-weight:700;letter-spacing:.3px;color:#b98bff;text-transform:uppercase}
+.nxgBar{height:5px;border-radius:5px;background:rgba(157,78,255,.18);margin:8px 0 10px;overflow:hidden}
+.nxgBar>i{display:block;height:100%;background:linear-gradient(90deg,#9D4EFF,#6ea8ff);border-radius:5px;transition:width .25s ease}
+.nxgTitle{font-size:17px;font-weight:800;line-height:1.25;margin:0 0 6px}
+.nxgText{font-size:14.5px;line-height:1.5;color:#d7d9f0}
+.nxgAct{margin-top:10px;font-size:13px;font-weight:700;color:#7fe3a3;background:rgba(127,227,163,.10);border:1px solid rgba(127,227,163,.30);padding:7px 10px;border-radius:10px}
+.nxgWhy{margin-top:8px;background:none;border:none;color:#8fb4ff;font-size:13px;text-decoration:underline;cursor:pointer;padding:2px 0;font-family:inherit}
+.nxgWhyBox{margin-top:8px;font-size:13px;line-height:1.45;color:#cfd6ff;background:rgba(110,168,255,.10);border-left:3px solid #6ea8ff;padding:8px 10px;border-radius:0 10px 10px 0}
+.nxgRecover{margin-top:10px;font-size:13px;color:#ffd27f;background:rgba(255,180,90,.10);border:1px solid rgba(255,180,90,.30);padding:8px 10px;border-radius:10px}
+.nxgBtns{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+.nxgB{min-height:44px;padding:10px 16px;border-radius:12px;border:1px solid rgba(157,78,255,.5);background:rgba(157,78,255,.08);color:#eef;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.nxgB:hover{background:rgba(157,78,255,.18)}
+.nxgBp{background:linear-gradient(90deg,#9D4EFF,#7c5cff);border-color:transparent;color:#fff}
+.nxgBp:hover{filter:brightness(1.08)}
+.nxgSkip{margin-left:auto;background:none;border:none;color:#9aa0c8;font-size:13px;cursor:pointer;min-height:44px;font-family:inherit}
+.nxgSkip:hover{color:#c9cdf0}
+.nxgX2{background:none;border:none;color:#9aa0c8;font-size:22px;line-height:1;cursor:pointer;padding:0 4px}
+.nxgFlash{outline:3px solid #9D4EFF!important;outline-offset:3px;border-radius:10px;animation:nxgFlash .7s ease 2}
+@keyframes nxgFlash{0%,100%{outline-color:rgba(157,78,255,.9)}50%{outline-color:rgba(157,78,255,.2)}}
+/* launcher */
+#nxgLaunch{position:fixed;inset:0;z-index:2147483020;display:none;align-items:center;justify-content:center;background:rgba(9,10,22,.62);backdrop-filter:blur(3px);padding:18px}
+.nxgCard{width:min(440px,94vw);max-height:88vh;overflow:auto;background:#14152b;border:1px solid rgba(157,78,255,.5);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.6);padding:22px 20px 18px;position:relative}
+.nxgX{position:absolute;top:12px;right:14px;background:none;border:none;color:#9aa0c8;font-size:26px;line-height:1;cursor:pointer}
+.nxgH{font-size:22px;font-weight:900;color:#fff;margin:2px 0 4px}
+.nxgSub{font-size:14px;color:#b9bce0;margin-bottom:14px}
+.nxgChip{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:56px;padding:12px 14px;margin-top:9px;border-radius:14px;border:1px solid rgba(157,78,255,.35);background:rgba(157,78,255,.06);color:#eef;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s,transform .1s}
+.nxgChip:hover{background:rgba(157,78,255,.16);transform:translateY(-1px)}
+.nxgIc{font-size:22px;flex:0 0 auto}
+.nxgResume{display:block;width:100%;text-align:left;min-height:52px;padding:12px 14px;margin-bottom:6px;border-radius:14px;border:1px solid rgba(127,227,163,.5);background:rgba(127,227,163,.10);color:#bff3d1;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+.nxgResume:hover{background:rgba(127,227,163,.2)}
+/* done state */
+#nxgTip.nxgDone{border-color:rgba(127,227,163,.6)}
+#nxgTip.nxgDone .nxgStep{color:#7fe3a3}
+/* discoverable entry button inside chat panel */
+#nxgEntry{display:flex;align-items:center;gap:8px;width:calc(100% - 20px);margin:10px auto 4px;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid rgba(157,78,255,.5);background:linear-gradient(90deg,rgba(157,78,255,.16),rgba(110,168,255,.12));color:#eef;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+#nxgEntry:hover{filter:brightness(1.1)}
+.nxgEic{font-size:17px}
+/* mobile */
+@media (max-width:560px){
+  #nxgTip{max-width:calc(100vw - 20px)}
+  .nxgTitle{font-size:16px}
+  .nxgCard{padding:18px 16px 14px}
+  .nxgH{font-size:20px}
+  .nxgChip{font-size:14.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  #nxgHole,#nxgRing,#nxgTip,#nxgArr,.nxgBar>i{transition:none!important}
+  #nxgRing.nxgPulse{animation:none!important}
+  .nxgFlash{animation:none!important}
+}
+
+</style>
+<script id="nxg-guide-script">
+/* ============================================================================
+   NEXION "MÓZG" V2 — Interaktywny przewodnik krok-po-kroku (Guide Engine)
+   Additive, self-contained, fully guarded. Rozszerza istniejący Mózg (nie duplikuje czatu).
+   - "Co chcesz zrobić?" launcher (intent → flow)
+   - 5 flows: what_is / find_api / automate / build / help
+   - one-step engine: overlay + spotlight + arrow + tooltip + step counter
+   - Pokaż mi / Dalej / Wstecz / Pomiń / Dlaczego, recovery, session progress, telemetry, a11y
+   Namespace: NXG (własne ID, brak kolizji z istniejącym #mz*).
+   ==========================================================================*/
+(function(){
+  "use strict";
+  if (window.NXG && window.NXG.__v) return;            // idempotent
+  var LS_KEY="nexion.guide.progress.v1", TELE_KEY="nexion.guide.tele.v1";
+  var go = function(id){ try{ if(typeof window.go==="function") window.go(id); }catch(_){} };
+  var $ = function(s){ try{ return document.querySelector(s); }catch(_){ return null; } };
+
+  /* ---- telemetry (client-side buffer; optional beacon, no-op if brak endpointu) ---- */
+  function tele(ev, extra){
+    try{
+      var sid = (localStorage.getItem("nexion.sid")||"anon");
+      var rec = {ev:ev, t:Date.now(), sid:sid, flow:(NXG.s.flow||null), step:(NXG.s.i!=null?NXG.s.i:null)};
+      if(extra) for(var k in extra) rec[k]=extra[k];
+      var buf=[]; try{ buf=JSON.parse(localStorage.getItem(TELE_KEY)||"[]"); }catch(_){}
+      buf.push(rec); if(buf.length>200) buf=buf.slice(-200);
+      localStorage.setItem(TELE_KEY, JSON.stringify(buf));
+      if(navigator.sendBeacon){ try{ navigator.sendBeacon(
+        "https://mdsvcobwuezriexyqqby.supabase.co/functions/v1/nx-smartlink?guide=1&ev="+encodeURIComponent(ev)
+      ); }catch(_){}}
+    }catch(_){}
+  }
+
+  /* ------------------------------- FLOWS ------------------------------------
+     Każdy krok: {mod?, sel, title, text, why?, act?} — act: 'click'|'input'|'info'
+     sel: preferuj [data-nexion-guide], fallback do stabilnych selektorów z inventory. */
+  var FLOWS = {
+    what_is: { title:"Co to jest NEXION?", steps:[
+      {mod:"over",  sel:'.navbtn[data-id="over"]',   title:"To jest NEXION", act:"info",
+        text:"NEXION pomaga znaleźć gotowe narzędzia i połączenia z usługami (tzw. API) i złożyć z nich rozwiązanie dla Twojej firmy. Pokażę Ci to w kilka kroków.",
+        why:"Żebyś wiedział, do czego służy aplikacja, zanim zaczniesz."},
+      {sel:'#gsearch', title:"Tutaj wpisujesz, czego szukasz", act:"info",
+        text:"W tym polu opisujesz swój problem lub wpisujesz, czego potrzebujesz — np. „wysyłka SMS”.",
+        why:"To najszybszy sposób, żeby NEXION znalazł dla Ciebie właściwe narzędzie."},
+      {mod:"builder", sel:'.navbtn[data-id="builder"]', title:"Tu budujesz automatyzację", act:"info",
+        text:"AI Business Builder zamienia opis Twojej firmy w gotowy plan automatyzacji.",
+        why:"Bo większość osób chce efekt, a nie pojedyncze API."},
+      {mod:"rank", sel:'.navbtn[data-id="rank"]', title:"Tu są gotowe narzędzia", act:"info",
+        text:"Ranking API to lista sprawdzonych narzędzi. NEXION podpowiada, które pasują do Ciebie.",
+        why:"Żebyś nie musiał sam przeszukiwać internetu."},
+      {mod:"account", sel:'.navbtn[data-id="account"]', title:"Tu masz swoje projekty", act:"info",
+        text:"„Moje projekty” to miejsce, gdzie zapisujesz i wracasz do tego, co stworzyłeś.",
+        why:"Żeby nic Ci nie zginęło i żebyś mógł kontynuować później."}
+    ]},
+    find_api: { title:"Znajdź narzędzie / API", steps:[
+      {sel:'#gsearch', title:"Wpisz, czego potrzebujesz", act:"input",
+        text:"Kliknij to pole i wpisz np. „SMS”, „płatności” albo „e-mail”. Potem naciśnij Enter.",
+        why:"NEXION dopasuje narzędzia do Twoich słów."},
+      {mod:"rank", sel:'.navbtn[data-id="rank"]', title:"Zobacz dopasowane narzędzia", act:"click",
+        text:"Kliknij „Ranking API”. Zobaczysz listę narzędzi z oceną dopasowania.",
+        why:"Tu porównasz opcje w jednym miejscu."},
+      {mod:"deep", sel:'.navbtn[data-id="deep"]', title:"Najlepsze propozycje", act:"info",
+        text:"„TOP 30” to skrót do najczęściej wybieranych, sprawdzonych narzędzi.",
+        why:"Żeby szybciej podjąć decyzję."}
+    ]},
+    automate: { title:"Zautomatyzuj firmę", steps:[
+      {mod:"builder", sel:'.navbtn[data-id="builder"]', title:"Otwórz Business Builder", act:"click",
+        text:"Kliknij „AI Business Builder”. Tu opiszesz swoją firmę.",
+        why:"To narzędzie ułoży plan automatyzacji za Ciebie."},
+      {mod:"builder", sel:'#mod-builder', title:"Opisz swoją firmę", act:"info",
+        text:"Wpisz krótko, czym się zajmujesz. Przykład: „Prowadzę salon kosmetyczny w Gdańsku i chcę automatycznie potwierdzać wizyty”.",
+        why:"Im konkretniej, tym lepszy plan dostaniesz."},
+      {mod:"roi", sel:'.navbtn[data-id="roi"]', title:"Sprawdź opłacalność", act:"info",
+        text:"W „ROI Analyzer” zobaczysz, ile czasu i pieniędzy może zaoszczędzić automatyzacja.",
+        why:"Żebyś wiedział, czy to się opłaca, zanim wdrożysz."}
+    ]},
+    build: { title:"Stwórz rozwiązanie", steps:[
+      {mod:"aiarch", sel:'.navbtn[data-id="aiarch"]', title:"Otwórz AI Architekt", act:"click",
+        text:"Kliknij „AI Architekt”. Pomoże zaprojektować rozwiązanie z kilku narzędzi.",
+        why:"Bo rozwiązania zwykle łączą 2–3 usługi."},
+      {mod:"builder", sel:'.navbtn[data-id="builder"]', title:"Albo zbuduj z gotowca", act:"info",
+        text:"Jeśli wolisz szybciej — „AI Business Builder” złoży rozwiązanie na podstawie opisu firmy.",
+        why:"Dwie drogi do tego samego celu — wybierz łatwiejszą dla siebie."},
+      {mod:"account", sel:'.navbtn[data-id="account"]', title:"Zapisz projekt", act:"info",
+        text:"Gotowe rozwiązanie zapiszesz w „Moje projekty” i wrócisz do niego później.",
+        why:"Żeby móc kontynuować i wdrożyć je krok po kroku."}
+    ]},
+    help: { title:"Nie wiem, co zrobić", steps:[
+      {mod:"over", sel:'.navbtn[data-id="over"]', title:"Zacznijmy od początku", act:"info",
+        text:"Nic nie szkodzi — poprowadzę Cię. NEXION znajduje narzędzia i składa z nich rozwiązanie.",
+        why:"Nie musisz nic wiedzieć wcześniej."},
+      {sel:'#gsearch', title:"Powiedz, co chcesz osiągnąć", act:"info",
+        text:"Wpisz tutaj jedną rzecz, którą chcesz załatwić — np. „chcę mniej telefonów odbierać ręcznie”.",
+        why:"Od tego zaczniemy dobierać rozwiązanie."},
+      {mod:"builder", sel:'.navbtn[data-id="builder"]', title:"Resztę zrobimy razem", act:"info",
+        text:"Kliknij „AI Business Builder”, a poprowadzę Cię dalej krok po kroku.",
+        why:"Będziesz robił jedną rzecz naraz — bez pośpiechu."}
+    ]}
+  };
+  var CHOICES = [
+    {k:"find_api",  ic:"🔎", t:"Chcę znaleźć odpowiednie narzędzie / API"},
+    {k:"automate",  ic:"⚙️", t:"Chcę zautomatyzować firmę"},
+    {k:"build",     ic:"🧩", t:"Chcę stworzyć rozwiązanie / aplikację"},
+    {k:"what_is",   ic:"💡", t:"Co to jest NEXION? Pokaż mi"},
+    {k:"help",      ic:"🤔", t:"Nie wiem — poprowadź mnie"}
+  ];
+
+  var NXG = window.NXG = {
+    __v:2,
+    s:{flow:null,i:null,steps:null},
+    open:launch, start:startFlow, stop:stop, resume:resume, telemetry:function(){try{return JSON.parse(localStorage.getItem(TELE_KEY)||"[]")}catch(_){return[]}}
+  };
+
+  /* --------------------------- DOM (lazy) ---------------------------------- */
+  var built=false, elOv,elHole,elRing,elArr,elTip,elLaunch, reduce=false;
+  function build(){
+    if(built) return; built=true;
+    try{ reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(_){}
+    elOv=div("nxgOv"); elHole=div("nxgHole"); elRing=div("nxgRing"); elArr=div("nxgArr"); elTip=div("nxgTip");
+    elTip.setAttribute("role","dialog"); elTip.setAttribute("aria-live","polite"); elTip.setAttribute("aria-label","Przewodnik NEXION");
+    [elOv,elHole,elRing,elArr,elTip].forEach(function(e){ document.body.appendChild(e); });
+    elOv.addEventListener("click", function(e){ if(e.target===elOv) {/* keep focus; ignore */} });
+    document.addEventListener("keydown", onKey, true);
+    window.addEventListener("resize", reanchor); window.addEventListener("scroll", reanchor, true);
+  }
+  function div(id){ var d=document.createElement("div"); d.id=id; return d; }
+  function onKey(e){ if(e.key==="Escape"){ if(elLaunch&&elLaunch.style.display!=="none"){closeLaunch();} else if(NXG.s.flow){ stop(); } } }
+
+  /* --------------------------- LAUNCHER ----------------------------------- */
+  function launch(){
+    build(); saveResumeMaybe();
+    if(!elLaunch){ elLaunch=div("nxgLaunch"); document.body.appendChild(elLaunch); }
+    var prog=loadProg(), resumeHtml="";
+    if(prog && FLOWS[prog.flow] && prog.i < FLOWS[prog.flow].steps.length){
+      resumeHtml='<button class="nxgResume" data-act="resume">▶ Kontynuuj: '+esc(FLOWS[prog.flow].title)+' (krok '+(prog.i+1)+'/'+FLOWS[prog.flow].steps.length+')</button>';
+    }
+    var chips = CHOICES.map(function(c){ return '<button class="nxgChip" data-flow="'+c.k+'"><span class="nxgIc">'+c.ic+'</span>'+esc(c.t)+'</button>'; }).join("");
+    elLaunch.innerHTML =
+      '<div class="nxgCard" role="dialog" aria-label="Co chcesz zrobić" aria-modal="true">'+
+        '<button class="nxgX" data-act="close" aria-label="Zamknij">×</button>'+
+        '<div class="nxgH">Co chcesz zrobić?</div>'+
+        '<div class="nxgSub">Wybierz jedną rzecz — poprowadzę Cię krok po kroku.</div>'+
+        resumeHtml+ chips +
+      '</div>';
+    elLaunch.style.display="flex";
+    elLaunch.querySelectorAll("[data-flow]").forEach(function(b){ b.onclick=function(){ closeLaunch(); startFlow(b.getAttribute("data-flow")); }; });
+    var rz=elLaunch.querySelector('[data-act="resume"]'); if(rz) rz.onclick=function(){ closeLaunch(); resume(); };
+    elLaunch.querySelector('[data-act="close"]').onclick=closeLaunch;
+    var f=elLaunch.querySelector(".nxgChip"); if(f) f.focus();
+    tele("guide_open");
+  }
+  function closeLaunch(){ if(elLaunch) elLaunch.style.display="none"; }
+
+  /* --------------------------- FLOW ENGINE -------------------------------- */
+  function startFlow(key){
+    var f=FLOWS[key]; if(!f) return;
+    build(); NXG.s={flow:key,i:0,steps:f.steps};
+    tele("guide_flow_started",{flowKey:key});
+    render();
+  }
+  function resume(){ var p=loadProg(); if(p&&FLOWS[p.flow]){ NXG.s={flow:p.flow,i:Math.min(p.i,FLOWS[p.flow].steps.length-1),steps:FLOWS[p.flow].steps}; build(); render(); } else { launch(); } }
+  function stop(){ hide(); NXG.s={flow:null,i:null,steps:null}; tele("guide_abandoned"); }
+  function finish(){
+    var t=NXG.s.flow; hide(); clearProg();
+    tele("guide_completed",{flowKey:t});
+    // sukces flow
+    elTip.className="nxgShow nxgDone"; elTip.style.left="50%"; elTip.style.top="auto"; elTip.style.bottom="24px"; elTip.style.transform="translateX(-50%)";
+    elTip.innerHTML='<div class="nxgTipIn"><div class="nxgStep">GOTOWE ✓</div><div class="nxgTitle">Świetnie — przeszedłeś przewodnik.</div>'+
+      '<div class="nxgText">Możesz teraz działać samodzielnie albo wybrać kolejną rzecz.</div>'+
+      '<div class="nxgBtns"><button class="nxgB nxgBp" data-act="more">Co jeszcze mogę zrobić?</button><button class="nxgB" data-act="end">Zamknij</button></div></div>';
+    elOv.className="nxgShow nxgDim0";
+    elTip.querySelector('[data-act="more"]').onclick=function(){ hide(); launch(); };
+    elTip.querySelector('[data-act="end"]').onclick=hide;
+    NXG.s={flow:null,i:null,steps:null};
+  }
+  function next(){ if(NXG.s.i>=NXG.s.steps.length-1){ finish(); } else { NXG.s.i++; render(); } }
+  function prev(){ if(NXG.s.i>0){ NXG.s.i--; render(); } }
+
+  function curStep(){ return NXG.s.steps ? NXG.s.steps[NXG.s.i] : null; }
+
+  function render(){
+    var st=curStep(); if(!st) return;
+    saveProg();
+    tele("guide_step_started",{stepIdx:NXG.s.i});
+    if(st.mod) go(st.mod);
+    // czekamy aż moduł się przełączy / DOM się ustawi
+    setTimeout(function(){ place(st); }, st.mod?260:40);
+  }
+
+  function findTarget(st){
+    // preferuj data-nexion-guide jeśli podano jako sel="[data-nexion-guide=x]"; potem sel; recovery: mod panel
+    var t = st.sel ? $(st.sel) : null;
+    if((!t || !visible(t)) && st.mod){ t = $('#mod-'+st.mod) || $('.navbtn[data-id="'+st.mod+'"]'); }
+    return (t&&visible(t))?t:null;
+  }
+  function visible(el){ try{ var r=el.getBoundingClientRect(); var cs=getComputedStyle(el); return r.width>0&&r.height>0&&cs.display!=="none"&&cs.visibility!=="hidden"; }catch(_){ return false; } }
+
+  function place(st){
+    var t=findTarget(st);
+    elOv.className="nxgShow";
+    if(!t){
+      // RECOVERY — cel nieobecny: pokaż krok bez spotlightu + oferta powrotu
+      hideSpot();
+      centerTip(st, true);
+      tele("guide_step_failed",{stepIdx:NXG.s.i, reason:"target_missing"});
+      return;
+    }
+    try{ t.scrollIntoView({behavior:reduce?"auto":"smooth", block:"center", inline:"center"}); }catch(_){ try{t.scrollIntoView();}catch(__){} }
+    setTimeout(function(){ anchor(t, st); }, reduce?0:220);
+  }
+
+  function anchor(t, st){
+    var r=t.getBoundingClientRect(), pad=8;
+    var x=r.left-pad, y=r.top-pad, w=r.width+pad*2, h=r.height+pad*2;
+    // spotlight (box-shadow trick — ciemność wokół, dziura na elemencie)
+    elHole.className="nxgShow"; elHole.style.left=x+"px"; elHole.style.top=y+"px"; elHole.style.width=w+"px"; elHole.style.height=h+"px";
+    elRing.className="nxgShow"+(reduce?"":" nxgPulse"); elRing.style.left=x+"px"; elRing.style.top=y+"px"; elRing.style.width=w+"px"; elRing.style.height=h+"px";
+    elOv.className="nxgShow nxgDim0"; // overlay przezroczysty; ciemność robi #nxgHole
+    positionTip(r, st);
+    wireStep(t, st);
+  }
+  function hideSpot(){ if(elHole)elHole.className=""; if(elRing)elRing.className=""; if(elArr)elArr.className=""; }
+
+  function tipHtml(st, noShow){
+    var total=NXG.s.steps.length, n=NXG.s.i+1;
+    var actLabel = st.act==="click" ? "Kliknij wskazany przycisk" : (st.act==="input" ? "Wpisz tekst we wskazane pole" : "");
+    var showMe = (st.act!=="info" && !noShow) ? '<button class="nxgB nxgBp" data-act="show">Pokaż mi</button>' : '';
+    var whyBtn = st.why ? '<button class="nxgWhy" data-act="why">Dlaczego to robimy?</button>' : '';
+    return '<div class="nxgTipIn">'+
+      '<div class="nxgStepRow"><span class="nxgStep">Krok '+n+' z '+total+'</span>'+
+        '<button class="nxgX2" data-act="stop" aria-label="Zamknij przewodnik">×</button></div>'+
+      '<div class="nxgBar"><i style="width:'+Math.round(n/total*100)+'%"></i></div>'+
+      '<div class="nxgTitle">'+esc(st.title)+'</div>'+
+      '<div class="nxgText">'+st.text /*allow simple html example*/ +'</div>'+
+      (actLabel?'<div class="nxgAct">'+actLabel+'</div>':'')+ whyBtn +
+      '<div class="nxgBtns">'+
+        (NXG.s.i>0?'<button class="nxgB" data-act="prev">Wstecz</button>':'')+
+        showMe+
+        '<button class="nxgB nxgBp" data-act="next">'+(NXG.s.i>=total-1?"Zakończ":"Dalej")+'</button>'+
+        '<button class="nxgSkip" data-act="stop">Pomiń</button>'+
+      '</div></div>';
+  }
+  function bindTip(t, st){
+    function b(a,fn){ var e=elTip.querySelector('[data-act="'+a+'"]'); if(e) e.onclick=fn; }
+    b("next",next); b("prev",prev); b("stop",stop);
+    b("show", function(){ if(t){ try{ t.scrollIntoView({behavior:"smooth",block:"center"}); }catch(_){} flash(t); if(st.act==="click"){ t.classList.add("nxgFlash"); } } });
+    b("why", function(){ var w=elTip.querySelector(".nxgWhyBox"); if(w){w.remove();return;} var d=document.createElement("div"); d.className="nxgWhyBox"; d.textContent=st.why; elTip.querySelector(".nxgTipIn").insertBefore(d, elTip.querySelector(".nxgBtns")); });
+    // auto-advance on real interaction
+    if(t && st.act==="click"){ t.addEventListener("click", onDone, {once:true}); }
+    if(t && st.act==="input"){ var inp = (t.tagName==="INPUT"||t.tagName==="TEXTAREA")?t:t.querySelector("input,textarea"); if(inp){ inp.addEventListener("change", onDone, {once:true}); inp.addEventListener("keydown", function(ev){ if(ev.key==="Enter") onDone(); }, {once:true}); } }
+  }
+  function onDone(){ tele("guide_step_completed",{stepIdx:NXG.s.i}); setTimeout(next, 350); }
+  function wireStep(t, st){ elTip.className="nxgShow"; elTip.innerHTML=tipHtml(st,false); bindTip(t,st); focusTip(); }
+  function centerTip(st, noShow){ elTip.className="nxgShow nxgCenter"; elTip.style.left="50%"; elTip.style.top="50%"; elTip.style.transform="translate(-50%,-50%)"; elTip.innerHTML=tipHtml(st,true)+recoveryNote(); bindTip(null,st); var rb=elTip.querySelector('[data-act="recover"]'); if(rb) rb.onclick=function(){ render(); }; focusTip(); }
+  function recoveryNote(){ return '<div class="nxgRecover">Nie widzę tego elementu na ekranie. <button class="nxgWhy" data-act="recover">Wróć do kroku</button></div>'; }
+
+  function positionTip(r, st){
+    elTip.className="nxgShow"; elTip.style.transform=""; elTip.innerHTML=tipHtml(st,false);
+    var vw=innerWidth, vh=innerHeight, tw=Math.min(340, vw-24), th=elTip.offsetHeight||220, m=14, mobile=vw<=560;
+    elTip.style.width=tw+"px";
+    var left, top, arr; // arrow dir
+    if(mobile){
+      // na mobile: dół ekranu, element nad nim widoczny; jeśli element w dolnej połowie → góra
+      var bottomHalf = r.top > vh*0.5;
+      top = bottomHalf ? m : (vh - th - m); left = (vw-tw)/2; arr = bottomHalf?"up":"down";
+    } else {
+      var spaceBelow=vh-r.bottom, spaceRight=vw-r.right;
+      if(spaceBelow>th+m){ top=r.bottom+m; left=clamp(r.left, m, vw-tw-m); arr="up"; }
+      else if(r.top>th+m){ top=r.top-th-m; left=clamp(r.left,m,vw-tw-m); arr="down"; }
+      else if(spaceRight>tw+m){ left=r.right+m; top=clamp(r.top,m,vh-th-m); arr="left"; }
+      else { left=clamp(r.left-tw-m,m,vw-tw-m); top=clamp(r.top,m,vh-th-m); arr="right"; }
+    }
+    elTip.style.left=left+"px"; elTip.style.top=top+"px";
+    // arrow → wskazuje element
+    elArr.className="nxgShow nxgArr-"+arr;
+    var cx=r.left+r.width/2, cy=r.top+r.height/2;
+    if(arr==="up"){ elArr.style.left=(clamp(cx,left+16,left+tw-16)-7)+"px"; elArr.style.top=(top-10)+"px"; }
+    else if(arr==="down"){ elArr.style.left=(clamp(cx,left+16,left+tw-16)-7)+"px"; elArr.style.top=(top+th)+"px"; }
+    else if(arr==="left"){ elArr.style.left=(left-10)+"px"; elArr.style.top=(clamp(cy,top+16,top+th-16)-7)+"px"; }
+    else { elArr.style.left=(left+tw)+"px"; elArr.style.top=(clamp(cy,top+16,top+th-16)-7)+"px"; }
+  }
+  function reanchor(){ var st=curStep(); if(!st||!NXG.s.flow) return; var t=findTarget(st); if(t&&visible(t)){ var r=t.getBoundingClientRect(); anchorLight(t,r,st);} }
+  function anchorLight(t,r,st){ var pad=8,x=r.left-pad,y=r.top-pad,w=r.width+pad*2,h=r.height+pad*2; elHole.style.left=x+"px";elHole.style.top=y+"px";elHole.style.width=w+"px";elHole.style.height=h+"px"; elRing.style.left=x+"px";elRing.style.top=y+"px";elRing.style.width=w+"px";elRing.style.height=h+"px"; positionTip(r,st); }
+
+  function flash(t){ t.classList.add("nxgFlash"); setTimeout(function(){ t.classList.remove("nxgFlash"); },1400); }
+  function focusTip(){ try{ var b=elTip.querySelector(".nxgBp")||elTip.querySelector(".nxgB"); if(b) b.focus(); }catch(_){} }
+  function hide(){ [elOv,elHole,elRing,elArr,elTip].forEach(function(e){ if(e) e.className=""; }); }
+
+  /* --------------------------- progress ----------------------------------- */
+  function saveProg(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({flow:NXG.s.flow,i:NXG.s.i,t:Date.now()})); }catch(_){} }
+  function loadProg(){ try{ var p=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(p&&Date.now()-p.t>86400000*3) return null; return p; }catch(_){ return null; } }
+  function clearProg(){ try{ localStorage.removeItem(LS_KEY); }catch(_){} }
+  function saveResumeMaybe(){ /* placeholder for future */ }
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+  /* --------------------------- integration -------------------------------- */
+  // Jeden Mózg: podłącz launcher pod istniejący FAB #cpBtn (pierwsze kliknięcie → V2 launcher),
+  // ale NIE łamiąc czatu — dodajemy przycisk „Przewodnik” do panelu oraz globalny hook.
+  function injectEntry(){
+    try{
+      var panel=document.getElementById("cpPanel");
+      if(panel && !document.getElementById("nxgEntry")){
+        var b=document.createElement("button");
+        b.id="nxgEntry"; b.type="button";
+        b.innerHTML='<span class="nxgEic">🧭</span> Przewodnik krok po kroku';
+        b.setAttribute("aria-label","Otwórz interaktywny przewodnik NEXION");
+        b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); launch(); };
+        panel.insertBefore(b, panel.firstChild);  // na górze panelu czatu — jeden Mózg, jedno wejście
+        return true;
+      }
+    }catch(_){}
+    return false;
+  }
+  function wireBrain(){
+    try{
+      var btn=document.getElementById("cpBtn");
+      if(btn && !btn.__nxg){
+        btn.__nxg=1;
+        // dblclick / long-press na istniejącym FAB → launcher; zwykłe kliknięcie (czat) zostaje nienaruszone.
+        btn.addEventListener("dblclick", function(e){ e.preventDefault(); e.stopPropagation(); launch(); }, true);
+        // przy pierwszym otwarciu panelu wstrzyknij widoczne wejście do przewodnika
+        btn.addEventListener("click", function(){ setTimeout(injectEntry, 60); });
+      }
+      injectEntry();                       // spróbuj od razu (panel bywa tworzony przy starcie)
+      window.mzPrzewodnikV2 = launch;      // publiczne API (menu / onboarding / pomoc)
+    }catch(_){}
+  }
+  if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded", wireBrain); } else { wireBrain(); }
+  // retry przez pierwsze ~6 s (panel/FAB tworzone asynchronicznie)
+  var _tries=0, _iv=setInterval(function(){ _tries++; wireBrain(); if(document.getElementById("nxgEntry")||_tries>30) clearInterval(_iv); }, 200);
+})();
+
+</script>
+<!-- /NEXION MÓZG V2 -->
+</body>
 </html>
