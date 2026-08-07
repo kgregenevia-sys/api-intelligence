@@ -2874,6 +2874,8 @@ html[data-light] .navbtn{color:var(--mut)}
 .nxgResume:hover{filter:brightness(1.06)}
 .nxgResume2:hover{background:rgba(255,255,255,.06)}
 .nxgChipAlt{border-style:dashed;opacity:.92}
+/* === KILL legacy brain (stary Mózg V1: dymek co 7 s + overlay starego touru). Jeden Mózg = V2.1. === */
+#mzDym,#mzZas,#mzDziura,#mzObwod,#mzStrz{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 /* done state */
 #nxgTip.nxgDone{border-color:rgba(127,227,163,.6)}
 #nxgTip.nxgDone .nxgStep{color:#7fe3a3}
@@ -3287,9 +3289,13 @@ html[data-light] .navbtn{color:var(--mut)}
     tele("onboard_shown");
   }
 
+  function killLegacyBrain(){
+    // stary Mózg V1 (mzDymek co 7 s + tour) — przekieruj jego wywołania na V2.1; elementy #mz* ukrywa CSS
+    try{ if(window.mzPrzewodnik!==launch) window.mzPrzewodnik=launch; }catch(_){}
+  }
   function wireBrain(){
     try{
-      neutralizeV1();
+      neutralizeV1(); killLegacyBrain();
       var btn=document.getElementById("cpBtn");
       if(btn && !btn.__nxg){
         btn.__nxg=1;
