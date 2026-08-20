@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXION — AI Copilot dla właściciela firmy</title>
+<style>
+  :root{
+    --bg:#0b0f17; --panel:#121a28; --card:#151f30; --ink:#eaf1fb; --muted:#93a4bd;
+    --line:#22304a; --accent:#5b8cff; --accent2:#7aa2ff; --good:#39d98a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:radial-gradient(1200px 600px at 70% -10%,#16233c 0%,var(--bg) 60%);color:var(--ink);line-height:1.55}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
+  header{padding:30px 0 6px}
+  .brand{font-size:14px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent2);font-weight:800}
+  h1{font-size:34px;line-height:1.18;margin:20px 0 12px;font-weight:800;letter-spacing:-.5px}
+  h1 span{color:var(--accent2)}
+  .lede{font-size:18px;color:#cdd8ec;margin:0 0 24px;max-width:640px}
+  .cta{display:inline-flex;gap:10px;align-items:center;background:var(--accent);color:#04122e;border:0;border-radius:11px;
+    padding:14px 22px;font-size:16px;font-weight:800;cursor:pointer;text-decoration:none}
+  .cta:hover{background:var(--accent2)}
+  .cta.ghost{background:transparent;color:var(--accent2);border:1px solid var(--line)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  section{padding:26px 0;border-top:1px solid var(--line)}
+  h2{font-size:22px;margin:0 0 14px}
+  .grid{display:flex;gap:14px;flex-wrap:wrap}
+  .feat{flex:1 1 240px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .feat b{display:block;font-size:16px;margin-bottom:6px}
+  .feat span{font-size:14px;color:var(--muted)}
+  .feat .ic{font-size:20px}
+  .plans{display:flex;gap:14px;flex-wrap:wrap}
+  .plan{flex:1 1 240px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column}
+  .plan.high{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .plan h3{margin:0 0 4px;font-size:19px}
+  .plan .tag{font-size:12px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+  .plan ul{margin:12px 0 18px;padding-left:18px}
+  .plan li{margin:6px 0;color:#cdd8ec;font-size:14px}
+  .plan .cta{margin-top:auto;justify-content:center}
+  .price-note{font-size:12.5px;color:var(--muted);margin-top:8px;text-align:center}
+  .steps{display:flex;gap:12px;flex-wrap:wrap;counter-reset:s}
+  .step{flex:1 1 180px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .step:before{counter-increment:s;content:counter(s);display:inline-flex;width:26px;height:26px;border-radius:50%;
+    background:var(--accent);color:#04122e;font-weight:800;align-items:center;justify-content:center;margin-bottom:8px}
+  .note{font-size:13px;color:var(--muted);background:#101827;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px}
+  footer{padding:26px 0 44px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line)}
+  a{color:var(--accent2)}
+  .toggle{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:6px 0 16px}
+  .toggle button{background:transparent;color:var(--muted);border:0;padding:8px 16px;font-weight:700;cursor:pointer;font-size:14px}
+  .toggle button.on{background:var(--accent);color:#04122e}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">NEXION</div>
+    <h1>Twój <span>AI Copilot</span> do prowadzenia firmy —<br>materiały marketingowe w minutę, nie w godzinę.</h1>
+    <p class="lede">NEXION to asystent AI dla właściciela firmy. Zadajesz pytanie biznesowe — dostajesz konkretną odpowiedź.
+      Prosisz o materiał — dostajesz gotowy post, reklamę albo ofertę. Wrzucasz plik lub zdjęcie — analizuje i mówi, co z tym zrobić.</p>
+    <div class="row">
+      <a class="cta" href="https://buy.stripe.com/6oU00b6kIbBb1wL5GbdQQ39">Zacznij z NEXION Pro →</a>
+      <a class="cta ghost" href="#plany">Zobacz plany</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>Co robi za Ciebie</h2>
+    <div class="grid">
+      <div class="feat"><div class="ic">✍️</div><b>Gotowe materiały marketingowe</b><span>Post na social, reklama, oferta, opis — nagłówek, 2–3 warianty tekstu, hashtagi i CTA. Po polsku, konkretnie.</span></div>
+      <div class="feat"><div class="ic">💬</div><b>Odpowiedzi na pytania biznesowe</b><span>„Czy opłaca się X?", „Jak to zrobić?" — zwięźle i na temat, bez lania wody.</span></div>
+      <div class="feat"><div class="ic">📎</div><b>Analiza plików i zdjęć</b><span>Wrzucasz dokument albo zdjęcie — NEXION streszcza, wskazuje najważniejsze fakty i jedno rekomendowane działanie.</span></div>
+      <div class="feat"><div class="ic">📱</div><b>W telefonie, pod ręką</b><span>Aplikacja NEXION na Androida — pomysł i gotowy tekst w tej samej minucie, gdziekolwiek jesteś.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Jak to działa</h2>
+    <div class="steps">
+      <div class="step"><b>Napisz, czego potrzebujesz</b><span>Pytanie albo „napisz post o…".</span></div>
+      <div class="step"><b>Dostajesz gotowca</b><span>Konkretny materiał lub odpowiedź — od razu do użycia.</span></div>
+      <div class="step"><b>Kopiuj i publikuj</b><span>Wstaw na social, w mailu, w ofercie. Koniec.</span></div>
+    </div>
+    <div class="note">NEXION nie zmyśla cen, dat ani statystyk. Czego nie wie o Twojej firmie — dopyta, zamiast zgadywać.</div>
+  </section>
+
+  <section id="plany">
+    <h2>Plany</h2>
+    <div class="toggle" role="group" aria-label="Okres rozliczeniowy">
+      <button id="btnM" class="on" onclick="setPer('m')">Miesięcznie</button>
+      <button id="btnY" onclick="setPer('y')">Rocznie</button>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <span class="tag">Starter</span>
+        <h3>Na start</h3>
+        <ul>
+          <li>Odpowiedzi i materiały marketingowe</li>
+          <li>Analiza plików i zdjęć</li>
+          <li>Aplikacja mobilna</li>
+        </ul>
+        <a class="cta" data-m="https://buy.stripe.com/6oU5kvcJ68oZ0sH9WrdQQ38" data-y="https://buy.stripe.com/6oU5kvcJ68oZ0sH9WrdQQ38" href="https://buy.stripe.com/6oU5kvcJ68oZ0sH9WrdQQ38">Wybierz Starter</a>
+        <div class="price-note">Cena widoczna na stronie płatności</div>
+      </div>
+      <div class="plan high">
+        <span class="tag">Pro · najczęściej wybierany</span>
+        <h3>Dla aktywnych</h3>
+        <ul>
+          <li>Wszystko ze Startera</li>
+          <li>Więcej materiałów i wariantów</li>
+          <li>Priorytet w działaniu</li>
+        </ul>
+        <a class="cta" data-m="https://buy.stripe.com/6oU00b6kIbBb1wL5GbdQQ39" data-y="https://buy.stripe.com/fZubIT8sQ0Wx1wL6KfdQQ3a" href="https://buy.stripe.com/6oU00b6kIbBb1wL5GbdQQ39">Wybierz Pro</a>
+        <div class="price-note">Cena widoczna na stronie płatności</div>
+      </div>
+      <div class="plan">
+        <span class="tag">Enterprise</span>
+        <h3>Dla zespołu</h3>
+        <ul>
+          <li>Wszystko z Pro</li>
+          <li>Rozwiązanie dla większej firmy</li>
+          <li>Wsparcie wdrożenia</li>
+        </ul>
+        <a class="cta" data-m="https://buy.stripe.com/8x2aEP7oM5cN4IX4C7dQQ3b" data-y="https://buy.stripe.com/5kQ00bcJ6ax7grF3y3dQQ3c" href="https://buy.stripe.com/8x2aEP7oM5cN4IX4C7dQQ3b">Wybierz Enterprise</a>
+        <div class="price-note">Cena widoczna na stronie płatności</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dla kogo</h2>
+    <div class="grid">
+      <div class="feat"><b>Właściciele małych firm</b><span>Sami ogarniają marketing i nie mają czasu na godziny pisania.</span></div>
+      <div class="feat"><b>Usługi lokalne i gabinety</b><span>Kliniki, gastronomia, beauty, warsztaty — szybkie treści na social i oferty.</span></div>
+      <div class="feat"><b>Handlowcy i freelancerzy</b><span>Oferty, opisy i wiadomości do klientów bez zastanawiania się „jak to napisać".</span></div>
+    </div>
+  </section>
+
+  <footer>
+    NEXION — AI Copilot dla właściciela firmy. Ceny i warunki widoczne na stronie płatności (Stripe).
+    Aplikacja pomaga tworzyć materiały; nie zastępuje doradztwa prawnego ani księgowego. © 2026.
+  </footer>
+</div>
+<script>
+  // przełącznik miesięcznie/rocznie — podmienia linki Stripe na przyciskach
+  function setPer(p){
+    document.getElementById('btnM').classList.toggle('on', p==='m');
+    document.getElementById('btnY').classList.toggle('on', p==='y');
+    document.querySelectorAll('.plan .cta').forEach(function(a){
+      var u = p==='y' ? a.getAttribute('data-y') : a.getAttribute('data-m');
+      if(u) a.setAttribute('href', u);
+    });
+  }
+</script>
+</body>
+</html>
